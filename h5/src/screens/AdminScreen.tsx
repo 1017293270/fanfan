@@ -61,8 +61,7 @@ export function AdminScreen({ currentUser }: AdminScreenProps) {
           新邀请码
           <input placeholder="留空自动生成" value={newCode} onChange={(event) => setNewCode(event.target.value)} />
         </label>
-        <button className="primary-button primary-button--with-icon" type="button" onClick={createCode}>
-          <img src={uiAssets.inviteTicket} alt="" />
+        <button className="primary-button" type="button" onClick={createCode}>
           生成邀请码
         </button>
         {message ? <div className="form-error form-error--soft">{message}</div> : null}

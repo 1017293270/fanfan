@@ -91,8 +91,7 @@ export function AmapImportScreen({ places, activePlace, location, onChanged }: A
             </button>
           ))}
         </div>
-        <button className="primary-button primary-button--with-icon" type="button" disabled={busy} onClick={search}>
-          <img src={uiAssets.actionNearby} alt="" />
+        <button className="primary-button" type="button" disabled={busy} onClick={search}>
           {busy ? '搜索中' : '搜附近'}
         </button>
       </section>
@@ -109,7 +108,6 @@ export function AmapImportScreen({ places, activePlace, location, onChanged }: A
               <span>{poi.address}</span>
             </div>
             <button type="button" onClick={() => add(poi)}>
-              <img src={uiAssets.actionEat} alt="" />
               加入
             </button>
           </article>

@@ -61,7 +61,7 @@ export function PlacesScreen({ places, location, onChanged, onLocate }: PlacesSc
         </div>
       </section>
       <button
-        className="primary-button primary-button--with-icon"
+        className="primary-button"
         type="button"
         onClick={() => {
           setEditing(null);
@@ -71,7 +71,6 @@ export function PlacesScreen({ places, location, onChanged, onLocate }: PlacesSc
           setOpen(true);
         }}
       >
-        <img src={uiAssets.actionNearby} alt="" />
         添加地点
       </button>
       <div className="card-list">

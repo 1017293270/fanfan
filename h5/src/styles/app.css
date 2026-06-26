@@ -367,20 +367,6 @@ select {
   box-shadow: none;
 }
 
-.primary-button--with-icon {
-  display: inline-flex;
-  align-items: center;
-  justify-content: center;
-  gap: 8px;
-}
-
-.primary-button--with-icon img {
-  width: 28px;
-  height: 28px;
-  flex: none;
-  object-fit: contain;
-}
-
 .primary-button:disabled {
   opacity: 0.68;
 }
@@ -675,19 +661,6 @@ select {
   font-weight: 900;
 }
 
-.toolbar__image-button {
-  display: inline-flex;
-  align-items: center;
-  justify-content: center;
-  gap: 4px;
-}
-
-.toolbar__image-button img {
-  width: 24px;
-  height: 24px;
-  object-fit: contain;
-}
-
 .card-list {
   display: flex;
   flex-direction: column;
@@ -833,12 +806,6 @@ select {
   background: var(--kfl-green-soft);
   color: var(--kfl-bamboo);
   font-weight: 900;
-}
-
-.poi-card button img {
-  width: 18px;
-  height: 18px;
-  object-fit: contain;
 }
 
 .search-card__intro {

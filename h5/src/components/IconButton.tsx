@@ -7,9 +7,11 @@ type IconButtonProps = ButtonHTMLAttributes<HTMLButtonElement> & {
 };
 
 export function IconButton({ iconSrc, label, variant = 'ghost', className = '', ...props }: IconButtonProps) {
+  const shouldShowIcon = variant !== 'green';
+
   return (
     <button className={`icon-button icon-button--${variant} ${className}`} type="button" {...props}>
-      <img src={iconSrc} alt="" />
+      {shouldShowIcon ? <img src={iconSrc} alt="" /> : null}
       <span>{label}</span>
     </button>
   );

@@ -95,8 +95,7 @@ export function StoresScreen({ places, stores, activePlace, onChanged }: StoresS
       <BrandHeader compact mascotSrc={mascots.riceBowl} title="我的店铺库" subtitle="每个账号都有自己的常吃、喜欢、吃腻和拉黑。" />
       <div className="toolbar">
         <input placeholder="搜店名、分类、地址" value={query} onChange={(event) => setQuery(event.target.value)} />
-        <button className="toolbar__image-button" type="button" onClick={openCreate}>
-          <img src={uiAssets.actionEat} alt="" />
+        <button type="button" onClick={openCreate}>
           添加
         </button>
       </div>
