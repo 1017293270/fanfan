@@ -10,6 +10,31 @@ type AmapRouteDeps = {
 };
 
 export async function registerAmapRoutes(app: FastifyInstance, deps: AmapRouteDeps) {
+  app.get('/api/amap/regeo', async (request, reply) => {
+    const user = await requireUser(request, deps);
+    if (!user) return reply.status(401).send({ message: 'Authentication required' });
+    if (!deps.amapClient) return reply.status(503).send({ message: 'AMap client unavailable' });
+
+    const query = request.query as {
+      latitude?: string;
+      longitude?: string;
+    };
+    const latitude = Number(query.latitude);
+    const longitude = Number(query.longitude);
+    if (!Number.isFinite(latitude) || !Number.isFinite(longitude)) {
+      return reply.status(400).send({ message: 'Invalid AMap reverse geocode query' });
+    }
+
+    try {
+      return deps.amapClient.reverseGeocode({
+        location: { latitude, longitude }
+      });
+    } catch (error) {
+      request.log.error(error);
+      return reply.status(502).send({ message: '高德地址解析暂时不可用，稍后再试' });
+    }
+  });
+
   app.get('/api/amap/search', async (request, reply) => {
     const user = await requireUser(request, deps);
     if (!user) return reply.status(401).send({ message: 'Authentication required' });

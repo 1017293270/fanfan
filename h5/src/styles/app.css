@@ -283,6 +283,17 @@ label {
   font-weight: 900;
 }
 
+.field-hint {
+  margin-top: -2px;
+  padding: 9px 10px;
+  border-radius: 12px;
+  background: var(--kfl-warm);
+  color: #8a4b11;
+  font-size: 12px;
+  font-weight: 900;
+  line-height: 1.4;
+}
+
 input,
 textarea,
 select {
@@ -439,6 +450,58 @@ select {
   border-radius: 999px;
   background: var(--kfl-warm);
   color: #8a4b11;
+  font-weight: 900;
+}
+
+.location-card {
+  display: grid;
+  grid-template-columns: 38px minmax(0, 1fr) 58px;
+  align-items: center;
+  gap: 10px;
+  padding: 11px 12px;
+  border: 1px solid var(--kfl-line);
+  border-radius: 16px;
+  background: #fff;
+}
+
+.location-card--browser {
+  border-color: rgba(74, 175, 91, 0.28);
+  background: var(--kfl-green-soft);
+}
+
+.location-card--fallback {
+  border-color: rgba(242, 75, 58, 0.24);
+  background: var(--kfl-peach);
+}
+
+.location-card img {
+  width: 38px;
+  height: 38px;
+  object-fit: contain;
+}
+
+.location-card strong {
+  display: block;
+  color: var(--kfl-ink);
+  font-size: 13px;
+  font-weight: 900;
+}
+
+.location-card span {
+  display: block;
+  margin-top: 3px;
+  color: var(--kfl-muted);
+  font-size: 11px;
+  font-weight: 800;
+  line-height: 1.35;
+}
+
+.location-card button {
+  height: 32px;
+  border-radius: 999px;
+  background: #fff;
+  color: #7b4d00;
+  font-size: 12px;
   font-weight: 900;
 }
 

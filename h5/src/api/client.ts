@@ -7,6 +7,7 @@ import type {
   Place,
   PublicUser,
   RecommendationResponse,
+  ReverseGeocodeResponse,
   Store,
   StorePlaceLink,
   StorePlaceStatus
@@ -50,6 +51,11 @@ function contextMessage(path: string, status: number): string {
     return '注册失败，检查邀请码和账号信息后再试。';
   }
   if (path.startsWith('/api/amap/')) {
+    if (path.startsWith('/api/amap/regeo')) {
+      if (status === 400) return '定位坐标有点异常，重新定位后再试。';
+      if (status === 503) return '高德服务还没配置好，检查一下高德 Key。';
+      return '地址解析暂时不可用，稍后再试。';
+    }
     if (status === 400) return '高德搜索请求异常，换个关键词或稍后再试。';
     if (status === 503) return '高德服务还没配置好，检查一下高德 Key。';
     return '高德搜索暂时不可用，稍后再试。';
@@ -242,6 +248,13 @@ export const api = {
       radiusMeters: String(input.radiusMeters)
     });
     return requestJson<{ pois: AmapPoi[] }>(`/api/amap/search?${params.toString()}`);
+  },
+  async reverseGeocode(location: LocationPoint) {
+    const params = new URLSearchParams({
+      latitude: String(location.latitude),
+      longitude: String(location.longitude)
+    });
+    return requestJson<ReverseGeocodeResponse>(`/api/amap/regeo?${params.toString()}`);
   },
   async importAmap(input: { placeId: string; poi: AmapPoi; tags: string[]; status: StorePlaceStatus }) {
     return requestJson<{ store: Store; link: StorePlaceLink }>('/api/stores/import-amap', {

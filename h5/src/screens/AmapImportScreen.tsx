@@ -3,26 +3,29 @@ import { api } from '../api/client';
 import type { AmapPoi, LocationPoint, Place } from '../api/types';
 import { mascots, uiAssets } from '../assets/visualAssets';
 import { BrandHeader } from '../components/BrandHeader';
+import type { LocationStatus } from '../types/location';
 
 type AmapImportScreenProps = {
   places: Place[];
   activePlace: Place | null;
   location: LocationPoint;
+  locationStatus: LocationStatus;
   onChanged: () => Promise<void>;
 };
 
-export function AmapImportScreen({ places, activePlace, location, onChanged }: AmapImportScreenProps) {
+export function AmapImportScreen({ places, activePlace, location, locationStatus, onChanged }: AmapImportScreenProps) {
   const [keyword, setKeyword] = useState('中餐');
   const [placeId, setPlaceId] = useState(activePlace?.id || places[0]?.id || '');
   const [results, setResults] = useState<AmapPoi[]>([]);
   const [message, setMessage] = useState('');
   const [busy, setBusy] = useState(false);
 
+  const selectedPlace = places.find((place) => place.id === placeId);
+
   async function search() {
     setBusy(true);
     setMessage('');
     try {
-      const selectedPlace = places.find((place) => place.id === placeId);
       const response = await api.searchAmap({
         keyword,
         location: selectedPlace
@@ -76,6 +79,11 @@ export function AmapImportScreen({ places, activePlace, location, onChanged }: A
             ))}
           </select>
         </label>
+        <div className="field-hint">
+          {selectedPlace
+            ? `搜索基准：${selectedPlace.name} · ${selectedPlace.address}`
+            : `搜索基准：${locationStatus.title}`}
+        </div>
         <div className="chips">
           {[
             { value: '中餐', icon: uiAssets.actionEat },

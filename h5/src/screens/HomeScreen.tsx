@@ -6,14 +6,16 @@ import { BrandHeader } from '../components/BrandHeader';
 import { IconButton } from '../components/IconButton';
 import { PlacePill } from '../components/PlacePill';
 import { Sheet } from '../components/Sheet';
+import type { LocationStatus } from '../types/location';
 
 type HomeScreenProps = {
   places: Place[];
   activePlace: Place | null;
-  location: LocationPoint;
+  locationStatus: LocationStatus;
   unmatched: boolean;
   onChanged: () => Promise<void>;
   onLocate: () => Promise<LocationPoint>;
+  onResolveAddress: (location: LocationPoint) => Promise<string>;
 };
 
 const distanceOptions = [
@@ -70,7 +72,7 @@ const moodOptions = [
   }
 ];
 
-export function HomeScreen({ activePlace, location, unmatched, onChanged, onLocate }: HomeScreenProps) {
+export function HomeScreen({ activePlace, locationStatus, unmatched, onChanged, onLocate, onResolveAddress }: HomeScreenProps) {
   const [textPreference, setTextPreference] = useState('想吃热乎的，不太辣，别太远');
   const [distanceMeters, setDistanceMeters] = useState(1500);
   const [budgetPerPerson, setBudgetPerPerson] = useState(30);
@@ -109,11 +111,13 @@ export function HomeScreen({ activePlace, location, unmatched, onChanged, onLoca
   }
 
   async function addCurrentPlace() {
+    const currentLocation = await onLocate();
+    const address = await onResolveAddress(currentLocation);
     await api.createPlace({
       name: newPlaceName,
-      address: '当前位置',
-      latitude: location.latitude,
-      longitude: location.longitude,
+      address,
+      latitude: currentLocation.latitude,
+      longitude: currentLocation.longitude,
       radiusMeters: 500
     });
     setPlaceSheet(false);
@@ -125,11 +129,24 @@ export function HomeScreen({ activePlace, location, unmatched, onChanged, onLoca
 
   return (
     <div className="screen-flow">
-      <div className="home-topline">
-        <BrandHeader mascotSrc={primary ? mascots.recommend : mascots.happy} title="今天想吃什么？" subtitle="说给饭饭狸听，少纠结，快开饭。" />
-        <PlacePill place={activePlace} unmatched={unmatched} />
-      </div>
-      <div className="mood-strip" aria-label="心情快捷入口">
+        <div className="home-topline">
+          <BrandHeader mascotSrc={primary ? mascots.recommend : mascots.happy} title="今天想吃什么？" subtitle="说给饭饭狸听，少纠结，快开饭。" />
+          <PlacePill place={activePlace} unmatched={unmatched} />
+        </div>
+        <section className={`location-card location-card--${locationStatus.source}`}>
+          <img src={locationStatus.source === 'browser' ? uiAssets.actionNearby : mascots.location} alt="" />
+          <div>
+            <strong>{locationStatus.title}</strong>
+            <span>
+              {locationStatus.detail}
+              {locationStatus.updatedAt ? ` · ${locationStatus.updatedAt}` : ''}
+            </span>
+          </div>
+          <button type="button" onClick={() => void onLocate()}>
+            刷新
+          </button>
+        </section>
+        <div className="mood-strip" aria-label="心情快捷入口">
         {moodOptions.map((option) => (
           <button
             type="button"

@@ -6,6 +6,13 @@ type Location = {
   longitude: number;
 };
 
+export type ReverseGeocodeResult = {
+  formattedAddress: string;
+  province?: string;
+  city?: string;
+  district?: string;
+};
+
 type AmapPoi = {
   id?: string;
   name?: string;
@@ -17,6 +24,19 @@ type AmapPoi = {
   };
   address?: string | string[];
   location?: string;
+};
+
+type AmapRegeoBody = {
+  status?: string;
+  info?: string;
+  regeocode?: {
+    formatted_address?: string;
+    addressComponent?: {
+      province?: string;
+      city?: string | string[];
+      district?: string;
+    };
+  };
 };
 
 function parseLocation(location?: string): RestaurantCandidate['location'] {
@@ -56,6 +76,7 @@ export type AmapClient = {
     radiusMeters: number;
     keywords: string[];
   }): Promise<RestaurantCandidate[]>;
+  reverseGeocode(input: { location: Location }): Promise<ReverseGeocodeResult>;
 };
 
 export function createAmapClient(config: RuntimeConfig): AmapClient {
@@ -83,6 +104,33 @@ export function createAmapClient(config: RuntimeConfig): AmapClient {
       }
 
       return (body.pois || []).map(mapPoi).filter((item): item is RestaurantCandidate => Boolean(item));
+    },
+
+    async reverseGeocode(input) {
+      const url = new URL('https://restapi.amap.com/v3/geocode/regeo');
+      url.searchParams.set('key', config.amapApiKey);
+      url.searchParams.set('location', `${input.location.longitude},${input.location.latitude}`);
+      url.searchParams.set('radius', '1000');
+      url.searchParams.set('extensions', 'base');
+
+      const response = await fetch(url);
+      if (!response.ok) {
+        throw new Error(`AMap reverse geocode request failed with status ${response.status}`);
+      }
+
+      const body = (await response.json()) as AmapRegeoBody;
+      if (body.status !== '1') {
+        throw new Error(`AMap reverse geocode request failed: ${body.info || 'unknown error'}`);
+      }
+
+      const component = body.regeocode?.addressComponent;
+      const city = Array.isArray(component?.city) ? component?.city[0] : component?.city;
+      return {
+        formattedAddress: body.regeocode?.formatted_address || '',
+        province: component?.province,
+        city,
+        district: component?.district
+      };
     }
   };
 }

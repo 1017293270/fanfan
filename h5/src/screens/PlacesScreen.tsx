@@ -4,15 +4,18 @@ import type { LocationPoint, Place } from '../api/types';
 import { mascots, uiAssets } from '../assets/visualAssets';
 import { BrandHeader } from '../components/BrandHeader';
 import { Sheet } from '../components/Sheet';
+import type { LocationStatus } from '../types/location';
 
 type PlacesScreenProps = {
   places: Place[];
   location: LocationPoint;
+  locationStatus: LocationStatus;
   onChanged: () => Promise<void>;
   onLocate: () => Promise<LocationPoint>;
+  onResolveAddress: (location: LocationPoint) => Promise<string>;
 };
 
-export function PlacesScreen({ places, location, onChanged, onLocate }: PlacesScreenProps) {
+export function PlacesScreen({ places, location, locationStatus, onChanged, onLocate, onResolveAddress }: PlacesScreenProps) {
   const [open, setOpen] = useState(false);
   const [editing, setEditing] = useState<Place | null>(null);
   const [name, setName] = useState('公司');
@@ -29,12 +32,15 @@ export function PlacesScreen({ places, location, onChanged, onLocate }: PlacesSc
 
   async function save() {
     const loc = await onLocate().catch(() => location);
+    const cleanAddress = address.trim();
+    const shouldResolveAddress = !cleanAddress || cleanAddress === '当前位置';
+    const nextAddress = !editing && shouldResolveAddress ? await onResolveAddress(loc) : cleanAddress;
     if (editing) {
-      await api.updatePlace(editing.id, { name, address, radiusMeters });
+      await api.updatePlace(editing.id, { name, address: cleanAddress || '当前位置附近', radiusMeters });
     } else {
       await api.createPlace({
         name,
-        address,
+        address: nextAddress || '当前位置附近',
         latitude: loc.latitude,
         longitude: loc.longitude,
         radiusMeters
@@ -57,7 +63,11 @@ export function PlacesScreen({ places, location, onChanged, onLocate }: PlacesSc
         <img src={mascots.location} alt="" />
         <div>
           <strong>饭饭狸会自动认地点</strong>
-          <span>到公司就按公司的店铺库，到家就换家的口味。</span>
+          <span>
+            {locationStatus.source === 'browser'
+              ? '已读取当前位置，添加地点时会自动反查附近地址。'
+              : '还没读到真实定位，添加地点会先使用兜底坐标。'}
+          </span>
         </div>
       </section>
       <button

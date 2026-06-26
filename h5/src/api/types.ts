@@ -108,3 +108,10 @@ export type LocationPoint = {
   latitude: number;
   longitude: number;
 };
+
+export type ReverseGeocodeResponse = {
+  formattedAddress: string;
+  province?: string;
+  city?: string;
+  district?: string;
+};

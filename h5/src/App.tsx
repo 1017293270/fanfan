@@ -9,11 +9,29 @@ import { PlacesScreen } from './screens/PlacesScreen';
 import { StoresScreen } from './screens/StoresScreen';
 import { AmapImportScreen } from './screens/AmapImportScreen';
 import { AdminScreen } from './screens/AdminScreen';
+import type { LocationStatus } from './types/location';
 
 const fallbackLocation: LocationPoint = {
   latitude: 31.2304,
   longitude: 121.4737
 };
+
+const fallbackLocationStatus: LocationStatus = {
+  source: 'fallback',
+  title: '当前使用兜底定位',
+  detail: '还没读到浏览器定位，先按上海市中心附近处理。'
+};
+
+function formatLocationDetail(location: LocationPoint) {
+  return `经纬度 ${location.latitude.toFixed(5)}, ${location.longitude.toFixed(5)}`;
+}
+
+function formatLocationTime() {
+  return new Date().toLocaleTimeString('zh-CN', {
+    hour: '2-digit',
+    minute: '2-digit'
+  });
+}
 
 export default function App() {
   const [me, setMe] = useState<PublicUser | null>(null);
@@ -23,6 +41,7 @@ export default function App() {
   const [activePlace, setActivePlace] = useState<Place | null>(null);
   const [unmatched, setUnmatched] = useState(false);
   const [location, setLocation] = useState<LocationPoint>(fallbackLocation);
+  const [locationStatus, setLocationStatus] = useState<LocationStatus>(fallbackLocationStatus);
   const [activeTab, setActiveTab] = useState('home');
 
   const navItems = useMemo(() => {
@@ -37,8 +56,19 @@ export default function App() {
   }, [me?.role]);
 
   async function locate(): Promise<LocationPoint> {
+    setLocationStatus({
+      source: 'locating',
+      title: '正在读取当前位置',
+      detail: '请允许浏览器定位，饭饭狸会用它匹配公司或家。'
+    });
     if (!navigator.geolocation) {
       setLocation(fallbackLocation);
+      setLocationStatus({
+        source: 'fallback',
+        title: '浏览器不支持定位',
+        detail: `${formatLocationDetail(fallbackLocation)} · 使用兜底位置`,
+        updatedAt: formatLocationTime()
+      });
       return fallbackLocation;
     }
     return new Promise((resolve) => {
@@ -49,15 +79,36 @@ export default function App() {
             longitude: position.coords.longitude
           };
           setLocation(next);
+          setLocationStatus({
+            source: 'browser',
+            title: '已读取当前位置',
+            detail: `${formatLocationDetail(next)} · 精度约 ${Math.round(position.coords.accuracy)}m`,
+            updatedAt: formatLocationTime()
+          });
           resolve(next);
         },
         () => {
           setLocation(fallbackLocation);
+          setLocationStatus({
+            source: 'fallback',
+            title: '定位失败，使用兜底位置',
+            detail: `${formatLocationDetail(fallbackLocation)} · 请检查浏览器定位权限`,
+            updatedAt: formatLocationTime()
+          });
           resolve(fallbackLocation);
         },
         { enableHighAccuracy: true, timeout: 5000, maximumAge: 60000 }
       );
     });
+  }
+
+  async function resolveAddress(point: LocationPoint): Promise<string> {
+    try {
+      const result = await api.reverseGeocode(point);
+      return result.formattedAddress || '当前位置附近';
+    } catch {
+      return '当前位置附近';
+    }
   }
 
   async function refreshDomain(nextLocation = location) {
@@ -143,16 +194,32 @@ export default function App() {
         <HomeScreen
           places={places}
           activePlace={activePlace}
-          location={location}
+          locationStatus={locationStatus}
           unmatched={unmatched}
           onChanged={handleChanged}
           onLocate={locate}
+          onResolveAddress={resolveAddress}
         />
       ) : null}
-      {activeTab === 'places' ? <PlacesScreen places={places} location={location} onChanged={handleChanged} onLocate={locate} /> : null}
+      {activeTab === 'places' ? (
+        <PlacesScreen
+          places={places}
+          location={location}
+          locationStatus={locationStatus}
+          onChanged={handleChanged}
+          onLocate={locate}
+          onResolveAddress={resolveAddress}
+        />
+      ) : null}
       {activeTab === 'stores' ? <StoresScreen places={places} stores={stores} activePlace={activePlace} onChanged={handleChanged} /> : null}
       {activeTab === 'import' ? (
-        <AmapImportScreen places={places} activePlace={activePlace} location={location} onChanged={handleChanged} />
+        <AmapImportScreen
+          places={places}
+          activePlace={activePlace}
+          location={location}
+          locationStatus={locationStatus}
+          onChanged={handleChanged}
+        />
       ) : null}
       {activeTab === 'admin' ? <AdminScreen currentUser={me} /> : null}
     </AppShell>
