@@ -13,6 +13,16 @@ type StoresScreenProps = {
   onChanged: () => Promise<void>;
 };
 
+const categoryOptions = [
+  { value: '中餐', icon: uiAssets.chipRice },
+  { value: '面馆', icon: uiAssets.chipNoodle },
+  { value: '火锅', icon: uiAssets.chipHotpot },
+  { value: '轻食', icon: uiAssets.chipSalad },
+  { value: '甜品', icon: uiAssets.chipDessert }
+];
+
+const tagOptions = ['米饭', '家常菜', '不辣', '少辣', '清淡', '排队少'];
+
 export function StoresScreen({ places, stores, activePlace, onChanged }: StoresScreenProps) {
   const [query, setQuery] = useState('');
   const [status, setStatus] = useState<'all' | StorePlaceStatus>('all');
@@ -20,10 +30,12 @@ export function StoresScreen({ places, stores, activePlace, onChanged }: StoresS
   const [editing, setEditing] = useState<Store | null>(null);
   const [name, setName] = useState('巷口小厨');
   const [category, setCategory] = useState('中餐');
-  const [address, setAddress] = useState('幸福路 1 号');
+  const [address, setAddress] = useState('常用地点附近');
   const [avgPrice, setAvgPrice] = useState(35);
   const [tags, setTags] = useState('米饭,家常菜');
   const [selectedPlaceId, setSelectedPlaceId] = useState(activePlace?.id || places[0]?.id || '');
+
+  const selectedPlace = places.find((place) => place.id === selectedPlaceId) || activePlace || places[0] || null;
 
   const filtered = useMemo(() => {
     return stores.filter((store) => {
@@ -34,14 +46,33 @@ export function StoresScreen({ places, stores, activePlace, onChanged }: StoresS
     });
   }, [query, status, stores]);
 
+  function addressForPlace(place: Place | null) {
+    return place ? `${place.address}附近` : '先添加一个常用地点';
+  }
+
+  function toggleTag(nextTag: string) {
+    const currentTags = tags.split(',').map((tag) => tag.trim()).filter(Boolean);
+    const nextTags = currentTags.includes(nextTag)
+      ? currentTags.filter((tag) => tag !== nextTag)
+      : [...currentTags, nextTag];
+    setTags(nextTags.join(','));
+  }
+
+  function changeSelectedPlace(placeId: string) {
+    setSelectedPlaceId(placeId);
+    const place = places.find((item) => item.id === placeId) || null;
+    if (!editing) setAddress(addressForPlace(place));
+  }
+
   function openCreate() {
+    const nextPlace = activePlace || places[0] || null;
     setEditing(null);
     setName('巷口小厨');
     setCategory('中餐');
-    setAddress('幸福路 1 号');
+    setAddress(addressForPlace(nextPlace));
     setAvgPrice(35);
     setTags('米饭,家常菜');
-    setSelectedPlaceId(activePlace?.id || places[0]?.id || '');
+    setSelectedPlaceId(nextPlace?.id || '');
     setOpen(true);
   }
 
@@ -60,12 +91,14 @@ export function StoresScreen({ places, stores, activePlace, onChanged }: StoresS
     if (editing) {
       await api.updateStore(editing.id, { name, category, address, avgPrice });
     } else {
+      const linkedPlace = places.find((place) => place.id === selectedPlaceId);
+      if (!linkedPlace) return;
       await api.createStore({
-        name,
-        category,
-        address,
-        latitude: activePlace?.latitude || 31.2304,
-        longitude: activePlace?.longitude || 121.4737,
+        name: name.trim() || '未命名店铺',
+        category: category.trim() || '餐饮',
+        address: address.trim() || addressForPlace(linkedPlace),
+        latitude: linkedPlace.latitude,
+        longitude: linkedPlace.longitude,
         avgPrice,
         placeIds: [selectedPlaceId],
         tags: tags.split(',').map((tag) => tag.trim()).filter(Boolean),
@@ -131,6 +164,19 @@ export function StoresScreen({ places, stores, activePlace, onChanged }: StoresS
         ))}
       </div>
       <Sheet title={editing ? '编辑店铺' : '添加店铺'} open={open} onClose={() => setOpen(false)}>
+        {!editing ? (
+          <section className="store-origin-card">
+            <img src={uiAssets.navStores} alt="" />
+            <div>
+              <strong>{selectedPlace ? `先记到「${selectedPlace.name}」` : '先添加常用地点'}</strong>
+              <span>
+                {selectedPlace
+                  ? `${selectedPlace.address} · 手动店铺会先使用该地点坐标，精确店铺地址可之后从高德导入。`
+                  : '没有常用地点时，暂时不能创建手动店铺。'}
+              </span>
+            </div>
+          </section>
+        ) : null}
         <label>
           店名
           <input value={name} onChange={(event) => setName(event.target.value)} />
@@ -139,6 +185,16 @@ export function StoresScreen({ places, stores, activePlace, onChanged }: StoresS
           分类
           <input value={category} onChange={(event) => setCategory(event.target.value)} />
         </label>
+        {!editing ? (
+          <div className="sheet-chip-row" aria-label="常用分类">
+            {categoryOptions.map((item) => (
+              <button className={category === item.value ? 'is-on' : ''} type="button" key={item.value} onClick={() => setCategory(item.value)}>
+                <img src={item.icon} alt="" />
+                {item.value}
+              </button>
+            ))}
+          </div>
+        ) : null}
         <label>
           地址
           <input value={address} onChange={(event) => setAddress(event.target.value)} />
@@ -150,7 +206,7 @@ export function StoresScreen({ places, stores, activePlace, onChanged }: StoresS
         {!editing ? (
           <label>
             关联地点
-            <select value={selectedPlaceId} onChange={(event) => setSelectedPlaceId(event.target.value)}>
+            <select value={selectedPlaceId} onChange={(event) => changeSelectedPlace(event.target.value)}>
               {places.map((place) => (
                 <option key={place.id} value={place.id}>
                   {place.name}
@@ -163,6 +219,20 @@ export function StoresScreen({ places, stores, activePlace, onChanged }: StoresS
           标签
           <input value={tags} onChange={(event) => setTags(event.target.value)} />
         </label>
+        {!editing ? (
+          <div className="sheet-chip-row sheet-chip-row--compact" aria-label="常用标签">
+            {tagOptions.map((tag) => (
+              <button
+                className={tags.split(',').map((item) => item.trim()).includes(tag) ? 'is-on' : ''}
+                type="button"
+                key={tag}
+                onClick={() => toggleTag(tag)}
+              >
+                {tag}
+              </button>
+            ))}
+          </div>
+        ) : null}
         <button className="primary-button" type="button" disabled={!selectedPlaceId && !editing} onClick={save}>
           保存
         </button>

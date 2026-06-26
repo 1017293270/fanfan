@@ -51,7 +51,7 @@ button {
 .phone-shell,
 .auth-screen {
   min-height: 100vh;
-  width: min(100vw, 430px);
+  width: min(100%, 430px);
   margin: 0 auto;
   background: var(--kfl-rice);
 }
@@ -561,6 +561,79 @@ select {
   opacity: 0.7;
 }
 
+.store-origin-card {
+  display: grid;
+  grid-template-columns: 42px minmax(0, 1fr);
+  align-items: center;
+  gap: 10px;
+  padding: 12px;
+  border: 1px solid rgba(242, 75, 58, 0.18);
+  border-radius: 16px;
+  background: var(--kfl-peach);
+}
+
+.store-origin-card img {
+  width: 42px;
+  height: 42px;
+  object-fit: contain;
+}
+
+.store-origin-card strong {
+  display: block;
+  color: var(--kfl-ink);
+  font-size: 13px;
+  font-weight: 900;
+}
+
+.store-origin-card span {
+  display: block;
+  margin-top: 3px;
+  color: var(--kfl-muted);
+  font-size: 11px;
+  font-weight: 800;
+  line-height: 1.4;
+}
+
+.sheet-chip-row {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 8px;
+  margin-top: 8px;
+}
+
+.sheet-chip-row button {
+  min-height: 34px;
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  gap: 5px;
+  padding: 7px 12px;
+  border: 1px solid var(--kfl-line);
+  border-radius: 999px;
+  background: #fff;
+  color: #66544d;
+  font-size: 12px;
+  font-weight: 900;
+}
+
+.sheet-chip-row button.is-on {
+  border-color: rgba(242, 75, 58, 0.34);
+  background: var(--kfl-peach);
+  color: #a2382e;
+}
+
+.sheet-chip-row img {
+  width: 20px;
+  height: 20px;
+  flex: none;
+  object-fit: contain;
+  border-radius: 50%;
+}
+
+.sheet-chip-row--compact button {
+  padding: 7px 11px;
+}
+
 .state-card {
   display: flex;
   align-items: center;
@@ -866,6 +939,10 @@ select {
 .store-card__summary p {
   margin-top: 6px;
   line-height: 1.45;
+  display: -webkit-box;
+  overflow: hidden;
+  -webkit-box-orient: vertical;
+  -webkit-line-clamp: 2;
 }
 
 .store-card__tags {
@@ -897,29 +974,14 @@ select {
 
 .store-card__actions {
   display: flex;
-  flex-direction: column;
-  gap: 10px;
-}
-
-.store-card__status-actions {
-  display: grid;
-  grid-template-columns: repeat(3, minmax(0, 1fr));
+  flex-wrap: wrap;
   gap: 8px;
+  padding-top: 2px;
 }
 
-.store-card__manage-actions {
-  display: grid;
-  grid-template-columns: repeat(2, minmax(0, 1fr));
-  gap: 8px;
-}
-
-.store-card__status-actions button,
-.store-card__manage-actions button {
+.store-card__action {
+  flex: 1 1 86px;
   min-height: 38px;
-  display: inline-flex;
-  align-items: center;
-  justify-content: center;
-  gap: 5px;
   padding: 0 10px;
   border: 1px solid var(--kfl-line);
   border-radius: 999px;
@@ -930,15 +992,27 @@ select {
   white-space: nowrap;
 }
 
-.store-card__manage-actions button {
-  background: var(--kfl-warm);
+.store-card__action--favorite {
+  border-color: rgba(242, 75, 58, 0.22);
+  background: var(--kfl-peach);
+  color: #a2382e;
+}
+
+.store-card__action--tired {
+  border-color: rgba(255, 216, 90, 0.42);
+  background: #fff0d4;
   color: #7b4d00;
 }
 
-.store-card__status-actions button img {
-  width: 18px;
-  height: 18px;
-  object-fit: contain;
+.store-card__action--blocked {
+  border-color: rgba(47, 47, 47, 0.08);
+  background: #eee5df;
+  color: #67564f;
+}
+
+.store-card__action--ghost {
+  background: var(--kfl-warm);
+  color: #7b4d00;
 }
 
 .status-badge img {
@@ -1096,7 +1170,7 @@ select {
 .sheet {
   position: relative;
   z-index: 1;
-  width: min(100vw, 430px);
+  width: min(100%, 430px);
   max-height: 82vh;
   margin: 0 auto;
   overflow-y: auto;
@@ -1130,7 +1204,11 @@ select {
 }
 
 .sheet label + label,
+.sheet label + .sheet-chip-row,
+.sheet-chip-row + label,
+.store-origin-card + label,
 .sheet label + .primary-button,
+.sheet-chip-row + .primary-button,
 .sheet .primary-button {
   margin-top: 12px;
 }
