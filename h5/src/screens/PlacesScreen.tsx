@@ -21,25 +21,81 @@ export function PlacesScreen({ places, location, locationStatus, onChanged, onLo
   const [name, setName] = useState('公司');
   const [address, setAddress] = useState('当前位置');
   const [radiusMeters, setRadiusMeters] = useState(500);
+  const [draftLocation, setDraftLocation] = useState<LocationPoint | null>(null);
+  const [resolvedAddress, setResolvedAddress] = useState('');
+  const [resolving, setResolving] = useState(false);
+  const [sheetMessage, setSheetMessage] = useState('');
+
+  function coordinateText(point: LocationPoint) {
+    return `${point.latitude.toFixed(5)}, ${point.longitude.toFixed(5)}`;
+  }
+
+  async function refreshLocationPreview(forceReplaceAddress = false) {
+    setResolving(true);
+    setSheetMessage('饭饭狸正在确认当前位置...');
+    const previousResolvedAddress = resolvedAddress;
+    try {
+      const loc = await onLocate().catch(() => location);
+      const nextAddress = await onResolveAddress(loc);
+      setDraftLocation(loc);
+      setResolvedAddress(nextAddress);
+      setAddress((current) => {
+        const clean = current.trim();
+        if (forceReplaceAddress || !clean || clean === '当前位置' || clean === '当前位置附近' || clean === previousResolvedAddress) {
+          return nextAddress;
+        }
+        return current;
+      });
+      setSheetMessage('已解析当前位置，可按需改名称、地址或识别半径。');
+    } catch {
+      setDraftLocation(location);
+      setResolvedAddress('');
+      setSheetMessage('定位或地址解析暂时失败，会先按当前坐标保存。');
+    } finally {
+      setResolving(false);
+    }
+  }
 
   function edit(place: Place) {
     setEditing(place);
     setName(place.name);
     setAddress(place.address);
     setRadiusMeters(place.radiusMeters);
+    setDraftLocation({ latitude: place.latitude, longitude: place.longitude });
+    setResolvedAddress(place.address);
+    setSheetMessage('正在编辑已保存地点，可刷新为当前位置。');
     setOpen(true);
   }
 
+  function openCreate() {
+    setEditing(null);
+    setName('公司');
+    setAddress('当前位置');
+    setRadiusMeters(500);
+    setDraftLocation(null);
+    setResolvedAddress('');
+    setSheetMessage('');
+    setOpen(true);
+    void refreshLocationPreview(true);
+  }
+
   async function save() {
-    const loc = await onLocate().catch(() => location);
+    const loc = draftLocation || (await onLocate().catch(() => location));
     const cleanAddress = address.trim();
     const shouldResolveAddress = !cleanAddress || cleanAddress === '当前位置';
-    const nextAddress = !editing && shouldResolveAddress ? await onResolveAddress(loc) : cleanAddress;
+    const nextAddress = shouldResolveAddress ? resolvedAddress || (await onResolveAddress(loc)) : cleanAddress;
+    const safeName = name.trim() || '常用地点';
     if (editing) {
-      await api.updatePlace(editing.id, { name, address: cleanAddress || '当前位置附近', radiusMeters });
+      await api.updatePlace(editing.id, {
+        name: safeName,
+        address: nextAddress || '当前位置附近',
+        latitude: loc.latitude,
+        longitude: loc.longitude,
+        radiusMeters
+      });
     } else {
       await api.createPlace({
-        name,
+        name: safeName,
         address: nextAddress || '当前位置附近',
         latitude: loc.latitude,
         longitude: loc.longitude,
@@ -73,13 +129,7 @@ export function PlacesScreen({ places, location, locationStatus, onChanged, onLo
       <button
         className="primary-button"
         type="button"
-        onClick={() => {
-          setEditing(null);
-          setName('公司');
-          setAddress('当前位置');
-          setRadiusMeters(500);
-          setOpen(true);
-        }}
+        onClick={openCreate}
       >
         添加地点
       </button>
@@ -111,6 +161,19 @@ export function PlacesScreen({ places, location, locationStatus, onChanged, onLo
         ))}
       </div>
       <Sheet title={editing ? '编辑地点' : '添加地点'} open={open} onClose={() => setOpen(false)}>
+        <section className={`location-preview location-preview--${locationStatus.source}`}>
+          <img src={locationStatus.source === 'browser' ? uiAssets.actionNearby : mascots.location} alt="" />
+          <div>
+            <strong>{resolving ? '正在确认地点' : editing ? '地点坐标' : '将保存为常用地点'}</strong>
+            <span>
+              {draftLocation ? `${address || resolvedAddress || '当前位置附近'} · ${coordinateText(draftLocation)}` : locationStatus.detail}
+            </span>
+          </div>
+          <button type="button" disabled={resolving} onClick={() => void refreshLocationPreview(true)}>
+            {resolving ? '处理中' : '刷新'}
+          </button>
+        </section>
+        {sheetMessage ? <div className="field-hint">{sheetMessage}</div> : null}
         <label>
           名称
           <input value={name} onChange={(event) => setName(event.target.value)} />
@@ -123,6 +186,18 @@ export function PlacesScreen({ places, location, locationStatus, onChanged, onLo
           匹配半径
           <input type="number" value={radiusMeters} onChange={(event) => setRadiusMeters(Number(event.target.value))} />
         </label>
+        <div className="radius-options" aria-label="匹配半径快捷选择">
+          {[300, 500, 800, 1200].map((value) => (
+            <button
+              className={radiusMeters === value ? 'is-on' : ''}
+              type="button"
+              key={value}
+              onClick={() => setRadiusMeters(value)}
+            >
+              {value}m
+            </button>
+          ))}
+        </div>
         <button className="primary-button" type="button" onClick={save}>
           保存
         </button>

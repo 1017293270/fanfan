@@ -505,6 +505,62 @@ select {
   font-weight: 900;
 }
 
+.location-preview {
+  display: grid;
+  grid-template-columns: 42px minmax(0, 1fr) 56px;
+  align-items: center;
+  gap: 10px;
+  padding: 12px;
+  border: 1px solid var(--kfl-line);
+  border-radius: 16px;
+  background: var(--kfl-warm);
+}
+
+.location-preview--browser {
+  border-color: rgba(74, 175, 91, 0.3);
+  background: var(--kfl-green-soft);
+}
+
+.location-preview--fallback {
+  border-color: rgba(242, 75, 58, 0.24);
+  background: var(--kfl-peach);
+}
+
+.location-preview img {
+  width: 42px;
+  height: 42px;
+  object-fit: contain;
+}
+
+.location-preview strong {
+  display: block;
+  color: var(--kfl-ink);
+  font-size: 13px;
+  font-weight: 900;
+}
+
+.location-preview span {
+  display: block;
+  margin-top: 3px;
+  color: var(--kfl-muted);
+  font-size: 11px;
+  font-weight: 800;
+  line-height: 1.35;
+}
+
+.location-preview button {
+  height: 32px;
+  border-radius: 999px;
+  background: #fff;
+  color: #7b4d00;
+  font-size: 12px;
+  font-weight: 900;
+}
+
+.location-preview button:disabled {
+  opacity: 0.7;
+}
+
 .state-card {
   display: flex;
   align-items: center;
@@ -934,6 +990,28 @@ select {
   object-fit: contain;
 }
 
+.radius-options {
+  display: grid;
+  grid-template-columns: repeat(4, minmax(0, 1fr));
+  gap: 8px;
+}
+
+.radius-options button {
+  min-height: 36px;
+  border: 1px solid var(--kfl-line);
+  border-radius: 999px;
+  background: #fff;
+  color: #66544d;
+  font-size: 12px;
+  font-weight: 900;
+}
+
+.radius-options button.is-on {
+  border-color: rgba(242, 75, 58, 0.34);
+  background: var(--kfl-peach);
+  color: #a2382e;
+}
+
 .poi-card {
   display: grid;
   grid-template-columns: 38px minmax(0, 1fr) 58px;
@@ -1055,6 +1133,10 @@ select {
 .sheet label + .primary-button,
 .sheet .primary-button {
   margin-top: 12px;
+}
+
+.sheet .primary-button {
+  width: 100%;
 }
 
 .bottom-nav {
