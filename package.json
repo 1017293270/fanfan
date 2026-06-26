@@ -4,11 +4,14 @@
   "version": "0.1.0",
   "description": "开饭狸微信小程序 MVP",
   "workspaces": [
-    "server"
+    "server",
+    "h5"
   ],
   "scripts": {
     "dev:server": "npm --workspace server run dev",
+    "dev:h5": "npm --workspace h5 run dev -- --host 127.0.0.1 --port 5173",
     "build:server": "npm --workspace server run build",
+    "build:h5": "npm --workspace h5 run build",
     "test": "npm --workspace server test",
     "test:server": "npm --workspace server test"
   }
