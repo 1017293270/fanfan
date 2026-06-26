@@ -5,6 +5,8 @@ export const LocationSchema = z.object({
   longitude: z.number().min(-180).max(180)
 });
 
+export type Location = z.infer<typeof LocationSchema>;
+
 export const QuickFiltersSchema = z.object({
   distanceMeters: z.number().int().min(300).max(10000),
   budgetPerPerson: z.number().int().min(10).max(500).optional(),
