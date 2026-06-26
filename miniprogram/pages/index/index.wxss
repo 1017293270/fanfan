@@ -94,10 +94,32 @@
 .ghost-button,
 .nav-button {
   height: 72rpx;
-  line-height: 72rpx;
+  line-height: normal;
   border-radius: 999rpx;
   padding: 0;
   font-size: 24rpx;
+}
+
+.action-button {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  gap: 6rpx;
+  min-width: 0;
+}
+
+.action-button__icon {
+  width: 30rpx;
+  height: 30rpx;
+  flex: none;
+  border-radius: 50%;
+}
+
+.action-button text {
+  min-width: 0;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
 }
 
 .ghost-button {

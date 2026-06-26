@@ -12,6 +12,14 @@
 
 真实微信 AppID 通过微信开发者工具或 `miniprogram/project.private.config.json` 本地配置，不提交到仓库。
 
+## 设计资产
+
+- 品牌头像：`assets/brand/kaifanli-avatar-144.png`
+- 首页 UI 参考图：`assets/design/kaifanli-home-reference.png`
+- 饭饭狸 image2 素材板：`assets/design/kaifanli-brand-kit-sheet.png`
+- 小组件图标总览：`assets/design/kaifanli-icon-contact-sheet.png`
+- 小程序运行时图标：`miniprogram/assets/icons/`
+
 ## 验证清单
 
 - `npm test`

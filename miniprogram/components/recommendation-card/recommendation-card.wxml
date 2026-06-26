@@ -1,5 +1,8 @@
 <view class="card" wx:if="{{restaurant}}">
-  <view class="card__badge">饭饭狸推荐</view>
+  <view class="card__badge">
+    <image class="card__badge-icon" src="/assets/icons/bowl-sparkle.png" mode="aspectFit" />
+    <text>饭饭狸推荐</text>
+  </view>
   <view class="card__name">{{restaurant.name}}</view>
   <view class="card__meta">{{restaurant.category}} · {{distanceText}} · 人均{{restaurant.avgPrice || '-'}}元</view>
   <view class="card__tags">

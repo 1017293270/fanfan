@@ -437,6 +437,12 @@ AI 将用户自然语言解析为结构化偏好：
 
 - 小程序头像：`assets/brand/kaifanli-avatar-144.png`
 - 高清头像源图：`assets/brand/kaifanli-avatar-source.png`
+- 首页 UI 参考图：`assets/design/kaifanli-home-reference.png`
+- 首页 UI 参考源文件：`assets/design/kaifanli-home-reference.html`
+- Image2 品牌素材板：`assets/design/kaifanli-brand-kit-sheet.png`
+- Image2 图标总览：`assets/design/kaifanli-icon-contact-sheet.png`
+- 图标源文件：`assets/design/icons/`
+- 小程序内图标副本：`miniprogram/assets/icons/`
 
 ## 16. 自查记录
 

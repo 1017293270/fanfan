@@ -1,0 +1,352 @@
+<!doctype html>
+<html lang="zh-CN">
+  <head>
+    <meta charset="utf-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1" />
+    <title>开饭狸首页 UI 参考</title>
+    <style>
+      :root {
+        --tomato: #f24b3a;
+        --rice: #fff8ef;
+        --bamboo: #477f32;
+        --orange: #f7b642;
+        --ink: #2f2926;
+        --muted: #8a7469;
+        --line: #f4e3d9;
+        --peach: #ffe9df;
+        --green-soft: #e9f5df;
+      }
+
+      * {
+        box-sizing: border-box;
+      }
+
+      body {
+        margin: 0;
+        min-height: 100vh;
+        display: grid;
+        place-items: center;
+        background: #f6f1eb;
+        font-family: -apple-system, BlinkMacSystemFont, "PingFang SC", "Microsoft YaHei", sans-serif;
+        color: var(--ink);
+      }
+
+      .phone {
+        width: 390px;
+        height: 844px;
+        overflow: hidden;
+        background: var(--rice);
+        border-radius: 32px;
+        box-shadow: 0 24px 80px rgba(47, 41, 38, 0.18);
+      }
+
+      .screen {
+        height: 100%;
+        padding: 28px 20px 30px;
+      }
+
+      .hero {
+        display: flex;
+        align-items: center;
+        gap: 12px;
+      }
+
+      .avatar {
+        width: 58px;
+        height: 58px;
+      }
+
+      .brand {
+        color: var(--tomato);
+        font-size: 14px;
+        font-weight: 800;
+      }
+
+      .title {
+        margin-top: 2px;
+        font-size: 27px;
+        font-weight: 900;
+      }
+
+      .subtitle {
+        margin-top: 4px;
+        color: var(--muted);
+        font-size: 13px;
+      }
+
+      .input {
+        margin-top: 20px;
+        min-height: 88px;
+        padding: 16px;
+        border: 1px solid var(--line);
+        border-radius: 16px;
+        background: #fff;
+        color: var(--muted);
+        font-size: 15px;
+        line-height: 1.5;
+      }
+
+      .chips {
+        display: flex;
+        flex-wrap: wrap;
+        gap: 8px;
+        margin-top: 12px;
+      }
+
+      .chip {
+        min-height: 34px;
+        padding: 8px 13px;
+        border-radius: 999px;
+        border: 1px solid var(--line);
+        background: #fff;
+        color: #66544d;
+        font-size: 13px;
+        font-weight: 700;
+      }
+
+      .chip.is-on {
+        border-color: rgba(242, 75, 58, 0.32);
+        background: var(--peach);
+        color: #a2382e;
+      }
+
+      .primary {
+        margin-top: 20px;
+        height: 48px;
+        border-radius: 999px;
+        display: grid;
+        place-items: center;
+        background: var(--tomato);
+        color: #fff;
+        font-size: 16px;
+        font-weight: 900;
+      }
+
+      .state {
+        margin-top: 18px;
+        display: flex;
+        align-items: center;
+        gap: 12px;
+        padding: 15px;
+        border: 1px solid var(--line);
+        border-radius: 16px;
+        background: #fff;
+      }
+
+      .state img {
+        width: 48px;
+        height: 48px;
+      }
+
+      .state strong {
+        display: block;
+        font-size: 16px;
+      }
+
+      .state span {
+        display: block;
+        margin-top: 4px;
+        color: var(--muted);
+        font-size: 13px;
+      }
+
+      .card {
+        margin-top: 18px;
+        padding: 20px;
+        border: 1px solid var(--line);
+        border-radius: 18px;
+        background: #fff;
+      }
+
+      .badge {
+        display: inline-flex;
+        align-items: center;
+        gap: 6px;
+        padding: 5px 10px;
+        border-radius: 999px;
+        background: var(--green-soft);
+        color: var(--bamboo);
+        font-size: 13px;
+        font-weight: 800;
+      }
+
+      .badge-dot {
+        width: 16px;
+        height: 16px;
+        border-radius: 50%;
+        background: var(--orange);
+      }
+
+      .restaurant {
+        margin-top: 14px;
+        font-size: 25px;
+        font-weight: 900;
+      }
+
+      .meta {
+        margin-top: 7px;
+        color: #7c6b62;
+        font-size: 14px;
+      }
+
+      .tags {
+        display: flex;
+        gap: 7px;
+        margin-top: 13px;
+      }
+
+      .tag {
+        padding: 5px 8px;
+        border-radius: 999px;
+        background: #fff2e8;
+        color: #9a4a22;
+        font-size: 12px;
+        font-weight: 700;
+      }
+
+      .reason {
+        margin-top: 15px;
+        color: #4c403b;
+        font-size: 15px;
+        line-height: 1.55;
+      }
+
+      .alternates {
+        margin-top: 14px;
+        padding: 0 15px;
+        border: 1px solid var(--line);
+        border-radius: 16px;
+        background: #fff;
+      }
+
+      .section {
+        padding: 13px 0 3px;
+        font-size: 15px;
+        font-weight: 900;
+      }
+
+      .row {
+        display: flex;
+        justify-content: space-between;
+        gap: 10px;
+        padding: 12px 0;
+        border-top: 1px solid var(--line);
+      }
+
+      .row-name {
+        font-size: 15px;
+        font-weight: 800;
+      }
+
+      .row-meta {
+        margin-top: 4px;
+        color: var(--muted);
+        font-size: 12px;
+      }
+
+      .look {
+        align-self: center;
+        min-width: 54px;
+        height: 30px;
+        border-radius: 999px;
+        display: grid;
+        place-items: center;
+        background: #fff0d4;
+        color: #7b4d00;
+        font-size: 12px;
+        font-weight: 800;
+      }
+
+      .actions {
+        display: grid;
+        grid-template-columns: repeat(3, 1fr) 1.25fr;
+        gap: 7px;
+        margin-top: 14px;
+      }
+
+      .action {
+        height: 38px;
+        border-radius: 999px;
+        display: grid;
+        place-items: center;
+        border: 1px solid var(--line);
+        background: #fff;
+        color: #5f514b;
+        font-size: 12px;
+        font-weight: 800;
+      }
+
+      .action.nav {
+        border-color: var(--bamboo);
+        background: var(--bamboo);
+        color: #fff;
+      }
+    </style>
+  </head>
+  <body>
+    <main class="phone">
+      <section class="screen">
+        <div class="hero">
+          <img class="avatar" src="../brand/kaifanli-avatar-144.png" alt="" />
+          <div>
+            <div class="brand">开饭狸</div>
+            <div class="title">今天想吃什么？</div>
+            <div class="subtitle">说给饭饭狸听，少纠结，快开饭。</div>
+          </div>
+        </div>
+        <div class="input">比如：想吃热乎的，不太辣，别太远</div>
+        <div class="chips">
+          <span class="chip is-on">1.5km 内</span>
+          <span class="chip">3km 内</span>
+          <span class="chip is-on">人均 30</span>
+          <span class="chip">人均 50</span>
+          <span class="chip is-on">少辣</span>
+          <span class="chip">米饭</span>
+          <span class="chip">热汤面</span>
+        </div>
+        <div class="primary">让饭饭狸拍板</div>
+        <div class="state">
+          <img src="../brand/kaifanli-avatar-144.png" alt="" />
+          <div>
+            <strong>附近好吃的正在赶来</strong>
+            <span>饭饭狸先看看距离、口味和预算。</span>
+          </div>
+        </div>
+        <div class="card">
+          <div class="badge"><span class="badge-dot"></span>饭饭狸推荐</div>
+          <div class="restaurant">巷口小厨</div>
+          <div class="meta">中餐 · 680m · 人均32元</div>
+          <div class="tags">
+            <span class="tag">米饭</span>
+            <span class="tag">家常菜</span>
+            <span class="tag">少辣</span>
+          </div>
+          <div class="reason">饭饭狸觉得这家离你近、口味偏家常，适合今天想吃热乎但不太辣的状态。</div>
+        </div>
+        <div class="alternates">
+          <div class="section">备选也不错</div>
+          <div class="row">
+            <div>
+              <div class="row-name">热汤面馆</div>
+              <div class="row-meta">面馆 · 920m · 人均28元</div>
+            </div>
+            <div class="look">看看</div>
+          </div>
+          <div class="row">
+            <div>
+              <div class="row-name">竹叶盖饭</div>
+              <div class="row-meta">快餐 · 760m · 人均26元</div>
+            </div>
+            <div class="look">看看</div>
+          </div>
+        </div>
+        <div class="actions">
+          <div class="action">换一批</div>
+          <div class="action">收藏</div>
+          <div class="action">不喜欢</div>
+          <div class="action nav">带我去</div>
+        </div>
+      </section>
+    </main>
+  </body>
+</html>

@@ -46,10 +46,22 @@
       <restaurant-row wx:for="{{alternatives}}" wx:key="poiId" restaurant="{{item}}" bind:choose="handleChooseAlternate" />
     </view>
     <view class="action-bar">
-      <button class="ghost-button" bindtap="handleRefresh">换一批</button>
-      <button class="ghost-button" bindtap="handleFavorite">收藏</button>
-      <button class="ghost-button" bindtap="handleDislike">不喜欢</button>
-      <button class="nav-button" bindtap="handleNavigate">带我去</button>
+      <button class="ghost-button action-button" bindtap="handleRefresh">
+        <image class="action-button__icon" src="/assets/icons/paw-refresh.png" mode="aspectFit" />
+        <text>换一批</text>
+      </button>
+      <button class="ghost-button action-button" bindtap="handleFavorite">
+        <image class="action-button__icon" src="/assets/icons/paw-heart.png" mode="aspectFit" />
+        <text>收藏</text>
+      </button>
+      <button class="ghost-button action-button" bindtap="handleDislike">
+        <image class="action-button__icon" src="/assets/icons/paw-dislike.png" mode="aspectFit" />
+        <text>不喜欢</text>
+      </button>
+      <button class="nav-button action-button action-button--nav" bindtap="handleNavigate">
+        <image class="action-button__icon" src="/assets/icons/chopsticks-nav.png" mode="aspectFit" />
+        <text>带我去</text>
+      </button>
     </view>
   </view>
 </view>
