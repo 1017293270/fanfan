@@ -1,0 +1,55 @@
+<view class="page safe-bottom">
+  <view class="hero">
+    <image class="hero__avatar" src="/assets/brand/kaifanli-avatar-144.png" mode="aspectFit" />
+    <view>
+      <view class="hero__brand">开饭狸</view>
+      <view class="hero__title">今天想吃什么？</view>
+      <view class="hero__subtitle">说给饭饭狸听，少纠结，快开饭。</view>
+    </view>
+  </view>
+
+  <textarea
+    class="preference-input"
+    placeholder="比如：想吃热乎的，不太辣，别太远"
+    maxlength="160"
+    value="{{textPreference}}"
+    bindinput="handleTextInput"
+  />
+
+  <view class="chips">
+    <preference-chip wx:for="{{distanceOptions}}" wx:key="label" label="{{item.label}}" value="{{item.value}}" selected="{{filters.distanceMeters === item.value}}" bind:select="handleDistanceSelect" />
+  </view>
+
+  <view class="chips">
+    <preference-chip wx:for="{{budgetOptions}}" wx:key="label" label="{{item.label}}" value="{{item.value}}" selected="{{filters.budgetPerPerson === item.value}}" bind:select="handleBudgetSelect" />
+  </view>
+
+  <view class="chips">
+    <preference-chip wx:for="{{spicyOptions}}" wx:key="label" label="{{item.label}}" value="{{item.value}}" selected="{{filters.spicyPreference === item.value}}" bind:select="handleSpicySelect" />
+  </view>
+
+  <view class="chips">
+    <preference-chip wx:for="{{cravingOptions}}" wx:key="label" label="{{item.label}}" value="{{item.value}}" selected="{{filters.craving === item.value}}" bind:select="handleCravingSelect" />
+  </view>
+
+  <button class="primary-button" loading="{{loading}}" bindtap="handleRecommend">让饭饭狸拍板</button>
+
+  <mascot-state wx:if="{{status === 'idle'}}" title="饭饭狸准备好了" body="填一句今天的感觉，或者直接点按钮试试。" />
+  <mascot-state wx:elif="{{status === 'locating'}}" title="正在定位" body="饭饭狸先看看你附近有什么好吃的。" />
+  <mascot-state wx:elif="{{status === 'loading'}}" title="正在找店" body="附近好吃的正在赶来。" />
+  <mascot-state wx:elif="{{status === 'error'}}" title="这次没找顺" body="{{errorMessage}}" />
+
+  <view wx:if="{{status === 'success'}}" class="results">
+    <recommendation-card restaurant="{{primaryRecommendation}}" />
+    <view class="alternates" wx:if="{{alternatives.length}}">
+      <view class="section-title">备选也不错</view>
+      <restaurant-row wx:for="{{alternatives}}" wx:key="poiId" restaurant="{{item}}" bind:choose="handleChooseAlternate" />
+    </view>
+    <view class="action-bar">
+      <button class="ghost-button" bindtap="handleRefresh">换一批</button>
+      <button class="ghost-button" bindtap="handleFavorite">收藏</button>
+      <button class="ghost-button" bindtap="handleDislike">不喜欢</button>
+      <button class="nav-button" bindtap="handleNavigate">带我去</button>
+    </view>
+  </view>
+</view>

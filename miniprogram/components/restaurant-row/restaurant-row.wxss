@@ -1,0 +1,35 @@
+.row {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  padding: 24rpx 0;
+  border-top: 2rpx solid #f4e3d9;
+}
+
+.row__main {
+  min-width: 0;
+}
+
+.row__name {
+  font-size: 30rpx;
+  font-weight: 700;
+  color: #2f2926;
+}
+
+.row__meta {
+  margin-top: 8rpx;
+  font-size: 24rpx;
+  color: #8a7469;
+}
+
+.row__button {
+  width: 104rpx;
+  height: 56rpx;
+  line-height: 56rpx;
+  border-radius: 999rpx;
+  background: #fff0d4;
+  color: #7b4d00;
+  font-size: 24rpx;
+  padding: 0;
+  flex: none;
+}

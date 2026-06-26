@@ -1,0 +1,21 @@
+{
+  "pages": [
+    "pages/index/index"
+  ],
+  "window": {
+    "navigationBarTitleText": "开饭狸",
+    "navigationBarBackgroundColor": "#F24B3A",
+    "navigationBarTextStyle": "white",
+    "backgroundColor": "#FFF8EF"
+  },
+  "permission": {
+    "scope.userLocation": {
+      "desc": "开饭狸需要你的位置信息，用来推荐附近可以吃的餐厅。"
+    }
+  },
+  "requiredPrivateInfos": [
+    "getLocation"
+  ],
+  "style": "v2",
+  "sitemapLocation": "sitemap.json"
+}

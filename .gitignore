@@ -4,8 +4,9 @@ dist/
 .env.*
 !.env.example
 miniprogram/project.private.config.json
-project.config.json
-project.private.config.json
+/project.config.json
+/project.private.config.json
 .DS_Store
 Thumbs.db
 .superpowers/
+tmp-preview-info.json

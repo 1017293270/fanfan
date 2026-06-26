@@ -1,0 +1,9 @@
+{
+  "usingComponents": {
+    "preference-chip": "../../components/preference-chip/preference-chip",
+    "mascot-state": "../../components/mascot-state/mascot-state",
+    "recommendation-card": "../../components/recommendation-card/recommendation-card",
+    "restaurant-row": "../../components/restaurant-row/restaurant-row"
+  },
+  "navigationBarTitleText": "开饭狸"
+}

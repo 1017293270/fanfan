@@ -1,0 +1,7 @@
+<view class="state">
+  <image class="state__avatar" src="/assets/brand/kaifanli-avatar-144.png" mode="aspectFit" />
+  <view class="state__text">
+    <view class="state__title">{{title}}</view>
+    <view class="state__body">{{body}}</view>
+  </view>
+</view>

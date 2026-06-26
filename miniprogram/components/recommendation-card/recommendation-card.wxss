@@ -1,0 +1,51 @@
+.card {
+  padding: 32rpx;
+  border-radius: 32rpx;
+  background: #ffffff;
+  border: 2rpx solid #f4e3d9;
+}
+
+.card__badge {
+  display: inline-flex;
+  padding: 8rpx 18rpx;
+  border-radius: 999rpx;
+  background: #e9f5df;
+  color: #3f7a2d;
+  font-size: 24rpx;
+  font-weight: 700;
+}
+
+.card__name {
+  margin-top: 20rpx;
+  font-size: 40rpx;
+  font-weight: 800;
+  color: #2f2926;
+}
+
+.card__meta {
+  margin-top: 10rpx;
+  color: #7c6b62;
+  font-size: 26rpx;
+}
+
+.card__tags {
+  margin-top: 20rpx;
+  display: flex;
+  gap: 12rpx;
+  flex-wrap: wrap;
+}
+
+.card__tag {
+  padding: 8rpx 14rpx;
+  border-radius: 999rpx;
+  background: #fff2e8;
+  color: #9a4a22;
+  font-size: 22rpx;
+}
+
+.card__reason {
+  margin-top: 24rpx;
+  color: #4c403b;
+  font-size: 28rpx;
+  line-height: 1.6;
+}
