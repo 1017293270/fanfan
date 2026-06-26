@@ -42,6 +42,8 @@ export function StoresScreen({ places, stores, activePlace, onChanged }: StoresS
   const [avgPrice, setAvgPrice] = useState(35);
   const [tags, setTags] = useState('米饭,家常菜');
   const [selectedPlaceId, setSelectedPlaceId] = useState(activePlace?.id || places[0]?.id || '');
+  const [deleteTarget, setDeleteTarget] = useState<Store | null>(null);
+  const [deleting, setDeleting] = useState(false);
 
   const selectedPlace = places.find((place) => place.id === selectedPlaceId) || activePlace || places[0] || null;
 
@@ -126,9 +128,20 @@ export function StoresScreen({ places, stores, activePlace, onChanged }: StoresS
     await onChanged();
   }
 
-  async function remove(store: Store) {
-    await api.deleteStore(store.id);
-    await onChanged();
+  function requestRemove(store: Store) {
+    setDeleteTarget(store);
+  }
+
+  async function confirmRemove() {
+    if (!deleteTarget || deleting) return;
+    setDeleting(true);
+    try {
+      await api.deleteStore(deleteTarget.id);
+      setDeleteTarget(null);
+      await onChanged();
+    } finally {
+      setDeleting(false);
+    }
   }
 
   return (
@@ -157,7 +170,7 @@ export function StoresScreen({ places, stores, activePlace, onChanged }: StoresS
           </section>
         ) : null}
         {filtered.map((store) => (
-          <StoreCard key={store.id} store={store} places={places} onEdit={openEdit} onDelete={remove} onStatus={changeStatus} />
+          <StoreCard key={store.id} store={store} places={places} onEdit={openEdit} onDelete={requestRemove} onStatus={changeStatus} />
         ))}
       </div>
       <Sheet title={editing ? '编辑店铺' : '添加店铺'} open={open} onClose={() => setOpen(false)}>
@@ -233,6 +246,23 @@ export function StoresScreen({ places, stores, activePlace, onChanged }: StoresS
         <button className="primary-button" type="button" disabled={!selectedPlaceId && !editing} onClick={save}>
           保存
         </button>
+      </Sheet>
+      <Sheet title="删除店铺" open={Boolean(deleteTarget)} onClose={() => (!deleting ? setDeleteTarget(null) : undefined)}>
+        <section className="store-origin-card store-origin-card--danger">
+          <img src={mascots.surprised} alt="" />
+          <div>
+            <strong>{deleteTarget ? `要删除「${deleteTarget.name}」吗？` : '要删除这家店吗？'}</strong>
+            <span>删除后，这家店会从你的店铺库和相关常用地点里移除。这个操作不会影响其他账号。</span>
+          </div>
+        </section>
+        <div className="sheet-actions">
+          <button className="secondary-button" type="button" disabled={deleting} onClick={() => setDeleteTarget(null)}>
+            再想想
+          </button>
+          <button className="danger-button" type="button" disabled={deleting} onClick={confirmRemove}>
+            {deleting ? '删除中' : '确认删除'}
+          </button>
+        </div>
       </Sheet>
     </div>
   );
