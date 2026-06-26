@@ -11,6 +11,7 @@
 5. 用微信开发者工具打开 `miniprogram/`
 
 真实微信 AppID 通过微信开发者工具或 `miniprogram/project.private.config.json` 本地配置，不提交到仓库。
+本地开发默认关闭微信开发者工具的 request 合法域名校验，以便请求 `http://127.0.0.1:8787`；上线或真机生产测试时需要部署 HTTPS 后端并在小程序后台配置合法域名。
 
 ## 设计资产
 
