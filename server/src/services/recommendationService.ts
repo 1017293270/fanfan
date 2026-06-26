@@ -1,13 +1,21 @@
-import type { ParsedPreference, RecommendationRequest, RecommendationResponse } from '../schemas/recommendation.js';
+import type {
+  ParsedPreference,
+  RecommendationResponse,
+  RecommendationServiceRequest,
+  RestaurantCandidate
+} from '../schemas/recommendation.js';
+import type { DataStore } from '../data/types.js';
 import type { AiCompleteJson } from './aiClient.js';
 import type { AmapClient } from './amapClient.js';
 import { parsePreference } from './preferenceParser.js';
 import { rankCandidates } from './ranker.js';
 import { writeRecommendationReason } from './reasonWriter.js';
+import { buildUserRecommendationContext } from './userRecommendationContext.js';
 
 type RecommendationServiceDeps = {
   amapClient: AmapClient;
   aiCompleteJson: AiCompleteJson;
+  dataStore?: DataStore;
 };
 
 const defaultMealSearchKeywords = ['中餐', '快餐', '面馆', '米饭', '盖饭', '粥', '小吃'];
@@ -30,24 +38,52 @@ function searchKeywordsFor(preference: ParsedPreference): string[] {
 
 export function createRecommendationService(deps: RecommendationServiceDeps) {
   return {
-    async recommend(request: RecommendationRequest): Promise<RecommendationResponse> {
+    async recommend(request: RecommendationServiceRequest): Promise<RecommendationResponse> {
       const parsedPreference = await parsePreference({
         textPreference: request.textPreference,
         quickFilters: request.quickFilters,
         aiCompleteJson: deps.aiCompleteJson
       });
+      const requestLocalContext = {
+        excludedPoiIds: request.localContext?.excludedPoiIds || [],
+        favoritePoiIds: request.localContext?.favoritePoiIds || [],
+        penalizedPoiIds: request.localContext?.penalizedPoiIds || []
+      };
 
-      const candidates = await deps.amapClient.searchRestaurants({
-        location: request.location,
-        radiusMeters: parsedPreference.distanceMeters,
-        keywords: searchKeywordsFor(parsedPreference)
-      });
+      let candidates: RestaurantCandidate[] = [];
+      let userLocalContext = {
+        excludedPoiIds: [] as string[],
+        favoritePoiIds: [] as string[],
+        penalizedPoiIds: [] as string[]
+      };
+
+      if (deps.dataStore && request.userContext?.activePlaceId) {
+        const context = await buildUserRecommendationContext({
+          dataStore: deps.dataStore,
+          userId: request.userContext.userId,
+          activePlaceId: request.userContext.activePlaceId,
+          location: request.location
+        });
+        candidates = context.candidates;
+        userLocalContext = context.localContext;
+      }
+
+      if (candidates.length < 3) {
+        const amapCandidates = await deps.amapClient.searchRestaurants({
+          location: request.location,
+          radiusMeters: parsedPreference.distanceMeters,
+          keywords: searchKeywordsFor(parsedPreference)
+        });
+        const existingPoiIds = new Set(candidates.map((candidate) => candidate.poiId));
+        candidates = candidates.concat(amapCandidates.filter((candidate) => !existingPoiIds.has(candidate.poiId)));
+      }
 
       const ranked = rankCandidates({
         candidates,
         preference: parsedPreference,
-        excludedPoiIds: request.localContext.excludedPoiIds,
-        favoritePoiIds: request.localContext.favoritePoiIds
+        excludedPoiIds: requestLocalContext.excludedPoiIds.concat(userLocalContext.excludedPoiIds),
+        favoritePoiIds: requestLocalContext.favoritePoiIds.concat(userLocalContext.favoritePoiIds),
+        penalizedPoiIds: requestLocalContext.penalizedPoiIds.concat(userLocalContext.penalizedPoiIds)
       });
 
       if (ranked.length === 0) {

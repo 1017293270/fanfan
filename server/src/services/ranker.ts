@@ -5,6 +5,7 @@ export type RankCandidatesInput = {
   preference: ParsedPreference;
   excludedPoiIds: string[];
   favoritePoiIds: string[];
+  penalizedPoiIds?: string[];
 };
 
 function includesAny(source: string[], targets: string[]): boolean {
@@ -61,7 +62,8 @@ function defaultMealFitScore(candidate: RestaurantCandidate, preference: ParsedP
 function scoreCandidate(
   candidate: RestaurantCandidate,
   preference: ParsedPreference,
-  favoritePoiIds: string[]
+  favoritePoiIds: string[],
+  penalizedPoiIds: string[]
 ): number {
   let score = 0;
 
@@ -80,7 +82,8 @@ function scoreCandidate(
   if (includesAny(searchText, preference.avoid)) score -= 30;
   score += defaultMealFitScore(candidate, preference);
   if (candidate.openNow === true) score += 10;
-  if (favoritePoiIds.includes(candidate.poiId)) score += 5;
+  if (favoritePoiIds.includes(candidate.poiId)) score += 24;
+  if (penalizedPoiIds.includes(candidate.poiId)) score -= 24;
 
   const rating = Number(candidate.rating);
   if (Number.isFinite(rating)) score += Math.round(rating * 3);
@@ -90,11 +93,12 @@ function scoreCandidate(
 
 export function rankCandidates(input: RankCandidatesInput): RestaurantCandidate[] {
   const excluded = new Set(input.excludedPoiIds);
+  const penalizedPoiIds = input.penalizedPoiIds || [];
   return input.candidates
     .filter((candidate) => !excluded.has(candidate.poiId))
     .map((candidate) => ({
       candidate,
-      score: scoreCandidate(candidate, input.preference, input.favoritePoiIds)
+      score: scoreCandidate(candidate, input.preference, input.favoritePoiIds, penalizedPoiIds)
     }))
     .sort((a, b) => b.score - a.score || a.candidate.distanceMeters - b.candidate.distanceMeters)
     .map((item) => item.candidate);

@@ -17,20 +17,29 @@ export const QuickFiltersSchema = z.object({
 
 export const LocalContextSchema = z.object({
   excludedPoiIds: z.array(z.string()).default([]),
-  favoritePoiIds: z.array(z.string()).default([])
+  favoritePoiIds: z.array(z.string()).default([]),
+  penalizedPoiIds: z.array(z.string()).default([])
 });
 
 export const RecommendationRequestSchema = z.object({
   location: LocationSchema,
   textPreference: z.string().max(160).default(''),
+  activePlaceId: z.string().optional(),
   quickFilters: QuickFiltersSchema,
   localContext: LocalContextSchema.default({
     excludedPoiIds: [],
-    favoritePoiIds: []
+    favoritePoiIds: [],
+    penalizedPoiIds: []
   })
 });
 
 export type RecommendationRequest = z.infer<typeof RecommendationRequestSchema>;
+export type RecommendationServiceRequest = RecommendationRequest & {
+  userContext?: {
+    userId: string;
+    activePlaceId?: string;
+  };
+};
 
 export type ParsedPreference = {
   distanceMeters: number;
