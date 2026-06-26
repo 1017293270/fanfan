@@ -23,6 +23,14 @@ const categoryOptions = [
 
 const tagOptions = ['米饭', '家常菜', '不辣', '少辣', '清淡', '排队少'];
 
+const statusFilterOptions: Array<{ value: 'all' | StorePlaceStatus; label: string; icon: string }> = [
+  { value: 'all', label: '全部', icon: uiAssets.navStores },
+  { value: 'active', label: '常吃', icon: uiAssets.actionEat },
+  { value: 'favorite', label: '喜欢', icon: uiAssets.actionFavorite },
+  { value: 'tired', label: '吃腻', icon: uiAssets.actionSpicy },
+  { value: 'blocked', label: '拉黑', icon: uiAssets.actionDislike }
+];
+
 export function StoresScreen({ places, stores, activePlace, onChanged }: StoresScreenProps) {
   const [query, setQuery] = useState('');
   const [status, setStatus] = useState<'all' | StorePlaceStatus>('all');
@@ -133,21 +141,10 @@ export function StoresScreen({ places, stores, activePlace, onChanged }: StoresS
         </button>
       </div>
       <div className="chips">
-        {(['all', 'active', 'favorite', 'tired', 'blocked'] as const).map((item) => (
-          <button className={`chip ${status === item ? 'is-on' : ''}`} type="button" key={item} onClick={() => setStatus(item)}>
-            <img
-              src={
-                item === 'favorite'
-                  ? uiAssets.actionFavorite
-                  : item === 'tired'
-                    ? uiAssets.actionEat
-                    : item === 'blocked'
-                      ? uiAssets.actionDislike
-                      : uiAssets.badgeKaifanliRecommend
-              }
-              alt=""
-            />
-            {item === 'all' ? '全部' : item === 'active' ? '常吃' : item === 'favorite' ? '喜欢' : item === 'tired' ? '吃腻' : '拉黑'}
+        {statusFilterOptions.map((item) => (
+          <button className={`chip ${status === item.value ? 'is-on' : ''}`} type="button" key={item.value} onClick={() => setStatus(item.value)}>
+            <img src={item.icon} alt="" />
+            {item.label}
           </button>
         ))}
       </div>
