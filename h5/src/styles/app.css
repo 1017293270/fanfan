@@ -49,12 +49,17 @@ button {
 
 .phone-shell {
   position: relative;
-  padding-bottom: 82px;
+  display: flex;
+  flex-direction: column;
 }
 
 .phone-screen,
 .auth-screen {
   padding: 28px 20px 30px;
+}
+
+.phone-screen {
+  flex: 1;
 }
 
 .screen-flow {
@@ -670,11 +675,9 @@ select {
 }
 
 .bottom-nav {
-  position: fixed;
-  left: 50%;
-  bottom: 0;
+  position: static;
   z-index: 6;
-  width: min(100vw, 430px);
+  width: 100%;
   display: grid;
   grid-auto-flow: column;
   grid-auto-columns: 1fr;
@@ -682,7 +685,6 @@ select {
   padding: 8px 12px calc(8px + env(safe-area-inset-bottom));
   border-top: 1px solid var(--kfl-line);
   background: rgba(255, 248, 239, 0.96);
-  transform: translateX(-50%);
   backdrop-filter: blur(12px);
 }
 
@@ -720,7 +722,6 @@ select {
   }
 
   .bottom-nav {
-    bottom: 28px;
     border-radius: 0 0 32px 32px;
   }
 }

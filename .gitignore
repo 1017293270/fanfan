@@ -13,3 +13,6 @@ tmp-preview-info.json
 tmp-preview.png
 tmp-dev-server*.log
 tmp-dev-server.pid
+tmp-h5-dev*.log
+tmp-h5-dev.pid
+server/.data/
