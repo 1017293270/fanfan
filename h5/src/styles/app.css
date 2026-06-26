@@ -1121,7 +1121,7 @@ select {
 
 .poi-card {
   display: grid;
-  grid-template-columns: 38px minmax(0, 1fr) 58px;
+  grid-template-columns: 38px minmax(0, 1fr) 66px;
   align-items: center;
   gap: 10px;
 }
@@ -1141,6 +1141,10 @@ select {
   background: var(--kfl-green-soft);
   color: var(--kfl-bamboo);
   font-weight: 900;
+}
+
+.poi-card button:disabled {
+  opacity: 0.72;
 }
 
 .search-card__intro {

@@ -19,8 +19,14 @@ export function AmapImportScreen({ places, activePlace, location, locationStatus
   const [results, setResults] = useState<AmapPoi[]>([]);
   const [message, setMessage] = useState('');
   const [busy, setBusy] = useState(false);
+  const [importingPoiKeys, setImportingPoiKeys] = useState<Set<string>>(() => new Set());
+  const [importedPoiKeys, setImportedPoiKeys] = useState<Set<string>>(() => new Set());
 
   const selectedPlace = places.find((place) => place.id === placeId);
+
+  function importKey(poi: AmapPoi) {
+    return `${placeId}:${poi.amapPoiId}`;
+  }
 
   async function search() {
     setBusy(true);
@@ -47,14 +53,28 @@ export function AmapImportScreen({ places, activePlace, location, locationStatus
       setMessage('先添加一个常用地点。');
       return;
     }
-    await api.importAmap({
-      placeId,
-      poi,
-      tags: (poi.tags || [keyword]).slice(0, 3),
-      status: 'active'
-    });
-    setMessage(`已加入：${poi.name}`);
-    await onChanged();
+    const key = importKey(poi);
+    if (importingPoiKeys.has(key) || importedPoiKeys.has(key)) return;
+    setImportingPoiKeys((current) => new Set(current).add(key));
+    try {
+      await api.importAmap({
+        placeId,
+        poi,
+        tags: (poi.tags || [keyword]).slice(0, 3),
+        status: 'active'
+      });
+      setImportedPoiKeys((current) => new Set(current).add(key));
+      setMessage(`已加入：${poi.name}`);
+      await onChanged();
+    } catch (err) {
+      setMessage(err instanceof Error ? err.message : '加入店铺失败，稍后再试。');
+    } finally {
+      setImportingPoiKeys((current) => {
+        const next = new Set(current);
+        next.delete(key);
+        return next;
+      });
+    }
   }
 
   return (
@@ -105,21 +125,26 @@ export function AmapImportScreen({ places, activePlace, location, locationStatus
       </section>
       {message ? <div className="form-error form-error--soft">{message}</div> : null}
       <div className="card-list">
-        {results.map((poi) => (
-          <article className="poi-card" key={poi.amapPoiId}>
-            <img src={uiAssets.actionNearby} alt="" />
-            <div>
-              <h3>{poi.name}</h3>
-              <p>
-                {poi.category} · {poi.distanceMeters ? `${poi.distanceMeters}m` : '附近'} · {poi.avgPrice ? `人均${poi.avgPrice}元` : '价格待补'}
-              </p>
-              <span>{poi.address}</span>
-            </div>
-            <button type="button" onClick={() => add(poi)}>
-              加入
-            </button>
-          </article>
-        ))}
+        {results.map((poi) => {
+          const key = importKey(poi);
+          const importing = importingPoiKeys.has(key);
+          const imported = importedPoiKeys.has(key);
+          return (
+            <article className="poi-card" key={poi.amapPoiId}>
+              <img src={uiAssets.actionNearby} alt="" />
+              <div>
+                <h3>{poi.name}</h3>
+                <p>
+                  {poi.category} · {poi.distanceMeters ? `${poi.distanceMeters}m` : '附近'} · {poi.avgPrice ? `人均${poi.avgPrice}元` : '价格待补'}
+                </p>
+                <span>{poi.address}</span>
+              </div>
+              <button type="button" disabled={importing || imported} onClick={() => add(poi)}>
+                {importing ? '加入中' : imported ? '已加入' : '加入'}
+              </button>
+            </article>
+          );
+        })}
         {results.length === 0 && !busy ? (
           <section className="empty-state">
             <img src={mascots.empty} alt="" />
