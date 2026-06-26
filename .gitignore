@@ -11,3 +11,5 @@ Thumbs.db
 .superpowers/
 tmp-preview-info.json
 tmp-preview.png
+tmp-dev-server*.log
+tmp-dev-server.pid

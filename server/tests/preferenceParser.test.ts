@@ -53,4 +53,53 @@ describe('parsePreference', () => {
       mustOpenNow: true
     });
   });
+
+  it('normalizes flexible AI fields to the public preference contract', async () => {
+    const result = await parsePreference({
+      textPreference: '想吃热乎的，不太辣，别太远',
+      quickFilters: {
+        distanceMeters: 1500,
+        budgetPerPerson: 30,
+        spicyPreference: 'mild',
+        craving: '米饭',
+        openNow: true
+      },
+      aiCompleteJson: async () =>
+        ({
+          distanceMeters: 1500,
+          budgetPerPerson: 30,
+          spicyPreference: 'mild',
+          cravings: ['米饭', '热乎的'],
+          avoid: ['辣', '重辣'],
+          mealScene: ['日常用餐'],
+          mustOpenNow: true
+        }) as never
+    });
+
+    expect(result.mealScene).toBe('日常用餐');
+  });
+
+  it('keeps the quick filter craving when AI omits cravings', async () => {
+    const result = await parsePreference({
+      textPreference: '想吃热乎的，不太辣，别太远',
+      quickFilters: {
+        distanceMeters: 1500,
+        budgetPerPerson: 30,
+        spicyPreference: 'mild',
+        craving: '米饭',
+        openNow: true
+      },
+      aiCompleteJson: async () =>
+        ({
+          distanceMeters: 1500,
+          budgetPerPerson: 30,
+          spicyPreference: 'mild',
+          cravings: [],
+          avoid: ['太辣', '太远'],
+          mustOpenNow: true
+        }) as never
+    });
+
+    expect(result.cravings).toEqual(['米饭']);
+  });
 });

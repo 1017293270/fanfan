@@ -6,20 +6,37 @@ export type AiCompleteJson = <T>(
 
 type AiMessage = Parameters<AiCompleteJson>[0][number];
 
+function shouldDisableMiniMaxThinking(config: RuntimeConfig): boolean {
+  const provider = `${config.aiBaseUrl} ${config.aiModel}`.toLowerCase();
+  return provider.includes('minimax') || provider.includes('minimaxi');
+}
+
+function parseJsonContent<T>(content: string): T {
+  const withoutThinking = content.replace(/^\s*<think>[\s\S]*?<\/think>\s*/i, '').trim();
+  const fenced = withoutThinking.match(/^```(?:json)?\s*([\s\S]*?)\s*```$/i);
+  const candidate = fenced ? fenced[1].trim() : withoutThinking;
+  return JSON.parse(candidate) as T;
+}
+
 export function createAiClient(config: RuntimeConfig): AiCompleteJson {
   return async function completeJson<T>(messages: AiMessage[]): Promise<T> {
+    const requestBody: Record<string, unknown> = {
+      model: config.aiModel,
+      temperature: 0.2,
+      response_format: { type: 'json_object' },
+      messages
+    };
+    if (shouldDisableMiniMaxThinking(config)) {
+      requestBody.thinking = { type: 'disabled' };
+    }
+
     const response = await fetch(`${config.aiBaseUrl}/chat/completions`, {
       method: 'POST',
       headers: {
         Authorization: `Bearer ${config.aiApiKey}`,
         'Content-Type': 'application/json'
       },
-      body: JSON.stringify({
-        model: config.aiModel,
-        temperature: 0.2,
-        response_format: { type: 'json_object' },
-        messages
-      })
+      body: JSON.stringify(requestBody)
     });
 
     if (!response.ok) {
@@ -34,6 +51,6 @@ export function createAiClient(config: RuntimeConfig): AiCompleteJson {
       throw new Error('AI response did not include message content');
     }
 
-    return JSON.parse(content) as T;
+    return parseJsonContent<T>(content);
   };
 }

@@ -9,6 +9,41 @@ function unique(values: string[]): string[] {
   return Array.from(new Set(values.filter(Boolean)));
 }
 
+function textValues(value: unknown): string[] {
+  if (Array.isArray(value)) {
+    return value
+      .filter((item): item is string => typeof item === 'string')
+      .map((item) => item.trim())
+      .filter(Boolean);
+  }
+  if (typeof value === 'string') {
+    const trimmed = value.trim();
+    return trimmed ? [trimmed] : [];
+  }
+  return [];
+}
+
+function mealSceneValue(value: unknown): string | undefined {
+  return textValues(value).join('、') || undefined;
+}
+
+function numberValue(value: unknown): number | undefined {
+  return typeof value === 'number' && Number.isFinite(value) ? value : undefined;
+}
+
+function booleanValue(value: unknown): boolean | undefined {
+  return typeof value === 'boolean' ? value : undefined;
+}
+
+function spicyValue(value: unknown): ParsedPreference['spicyPreference'] | undefined {
+  return value === 'none' || value === 'mild' || value === 'medium' || value === 'spicy' ? value : undefined;
+}
+
+function cravingValues(parsedCravings: unknown, quickCraving?: string): string[] {
+  const cravings = textValues(parsedCravings);
+  return cravings.length > 0 ? unique(cravings) : unique([quickCraving || '']);
+}
+
 function fallbackParse(input: Pick<RecommendationRequest, 'textPreference' | 'quickFilters'>): ParsedPreference {
   const text = input.textPreference;
   const cravings = [input.quickFilters.craving || ''];
@@ -33,7 +68,7 @@ function fallbackParse(input: Pick<RecommendationRequest, 'textPreference' | 'qu
 
 export async function parsePreference(input: ParsePreferenceInput): Promise<ParsedPreference> {
   try {
-    const parsed = await input.aiCompleteJson<ParsedPreference>([
+    const parsed = (await input.aiCompleteJson<ParsedPreference>([
       {
         role: 'system',
         content:
@@ -46,16 +81,16 @@ export async function parsePreference(input: ParsePreferenceInput): Promise<Pars
           quickFilters: input.quickFilters
         })
       }
-    ]);
+    ])) as Record<string, unknown>;
 
     return {
-      distanceMeters: parsed.distanceMeters || input.quickFilters.distanceMeters,
-      budgetPerPerson: parsed.budgetPerPerson ?? input.quickFilters.budgetPerPerson,
-      spicyPreference: parsed.spicyPreference ?? input.quickFilters.spicyPreference,
-      cravings: unique(parsed.cravings || []),
-      avoid: unique(parsed.avoid || []),
-      mealScene: parsed.mealScene,
-      mustOpenNow: parsed.mustOpenNow ?? input.quickFilters.openNow
+      distanceMeters: numberValue(parsed.distanceMeters) || input.quickFilters.distanceMeters,
+      budgetPerPerson: numberValue(parsed.budgetPerPerson) ?? input.quickFilters.budgetPerPerson,
+      spicyPreference: spicyValue(parsed.spicyPreference) ?? input.quickFilters.spicyPreference,
+      cravings: cravingValues(parsed.cravings, input.quickFilters.craving),
+      avoid: unique(textValues(parsed.avoid)),
+      mealScene: mealSceneValue(parsed.mealScene),
+      mustOpenNow: booleanValue(parsed.mustOpenNow) ?? input.quickFilters.openNow
     };
   } catch {
     return fallbackParse(input);
