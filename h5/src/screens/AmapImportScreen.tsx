@@ -1,7 +1,7 @@
 import { useState } from 'react';
 import { api } from '../api/client';
 import type { AmapPoi, LocationPoint, Place } from '../api/types';
-import locationIcon from '../assets/icons/bamboo-location.png';
+import { mascots, uiAssets } from '../assets/visualAssets';
 import { BrandHeader } from '../components/BrandHeader';
 
 type AmapImportScreenProps = {
@@ -56,8 +56,12 @@ export function AmapImportScreen({ places, activePlace, location, onChanged }: A
 
   return (
     <div className="screen-flow">
-      <BrandHeader compact title="从高德加店" subtitle="把公司或家附近的店，变成你的私人常用库。" />
+      <BrandHeader compact mascotSrc={mascots.location} title="从高德加店" subtitle="把公司或家附近的店，变成你的私人常用库。" />
       <section className="search-card">
+        <div className="search-card__intro">
+          <img src={mascots.location} alt="" />
+          <span>饭饭狸会用当前位置或常用地点附近搜索。</span>
+        </div>
         <label>
           关键词
           <input value={keyword} onChange={(event) => setKeyword(event.target.value)} />
@@ -73,13 +77,22 @@ export function AmapImportScreen({ places, activePlace, location, onChanged }: A
           </select>
         </label>
         <div className="chips">
-          {['中餐', '面馆', '米饭', '清淡', '咖啡', '甜品'].map((item) => (
-            <button className={`chip ${keyword === item ? 'is-on' : ''}`} type="button" key={item} onClick={() => setKeyword(item)}>
-              {item}
+          {[
+            { value: '中餐', icon: uiAssets.actionEat },
+            { value: '面馆', icon: uiAssets.chipNoodle },
+            { value: '米饭', icon: uiAssets.chipRice },
+            { value: '清淡', icon: uiAssets.chipLeaf },
+            { value: '火锅', icon: uiAssets.chipHotpot },
+            { value: '甜品', icon: uiAssets.chipDessert }
+          ].map((item) => (
+            <button className={`chip ${keyword === item.value ? 'is-on' : ''}`} type="button" key={item.value} onClick={() => setKeyword(item.value)}>
+              <img src={item.icon} alt="" />
+              {item.value}
             </button>
           ))}
         </div>
-        <button className="primary-button" type="button" disabled={busy} onClick={search}>
+        <button className="primary-button primary-button--with-icon" type="button" disabled={busy} onClick={search}>
+          <img src={uiAssets.actionNearby} alt="" />
           {busy ? '搜索中' : '搜附近'}
         </button>
       </section>
@@ -87,7 +100,7 @@ export function AmapImportScreen({ places, activePlace, location, onChanged }: A
       <div className="card-list">
         {results.map((poi) => (
           <article className="poi-card" key={poi.amapPoiId}>
-            <img src={locationIcon} alt="" />
+            <img src={uiAssets.actionNearby} alt="" />
             <div>
               <h3>{poi.name}</h3>
               <p>
@@ -96,10 +109,18 @@ export function AmapImportScreen({ places, activePlace, location, onChanged }: A
               <span>{poi.address}</span>
             </div>
             <button type="button" onClick={() => add(poi)}>
+              <img src={uiAssets.actionEat} alt="" />
               加入
             </button>
           </article>
         ))}
+        {results.length === 0 && !busy ? (
+          <section className="empty-state">
+            <img src={mascots.empty} alt="" />
+            <strong>先搜一下附近餐厅</strong>
+            <span>搜到喜欢的，就加入自己的店铺库。</span>
+          </section>
+        ) : null}
       </div>
     </div>
   );

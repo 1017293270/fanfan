@@ -1,6 +1,7 @@
 import { useState } from 'react';
 import { api } from '../api/client';
 import type { LocationPoint, Place } from '../api/types';
+import { mascots, uiAssets } from '../assets/visualAssets';
 import { BrandHeader } from '../components/BrandHeader';
 import { Sheet } from '../components/Sheet';
 
@@ -51,9 +52,16 @@ export function PlacesScreen({ places, location, onChanged, onLocate }: PlacesSc
 
   return (
     <div className="screen-flow">
-      <BrandHeader compact title="常用地点" subtitle="公司、家、学校，都可以有自己的常吃店。" />
+      <BrandHeader compact mascotSrc={mascots.location} title="常用地点" subtitle="公司、家、学校，都可以有自己的常吃店。" />
+      <section className="visual-callout">
+        <img src={mascots.location} alt="" />
+        <div>
+          <strong>饭饭狸会自动认地点</strong>
+          <span>到公司就按公司的店铺库，到家就换家的口味。</span>
+        </div>
+      </section>
       <button
-        className="primary-button"
+        className="primary-button primary-button--with-icon"
         type="button"
         onClick={() => {
           setEditing(null);
@@ -63,11 +71,20 @@ export function PlacesScreen({ places, location, onChanged, onLocate }: PlacesSc
           setOpen(true);
         }}
       >
+        <img src={uiAssets.actionNearby} alt="" />
         添加地点
       </button>
       <div className="card-list">
+        {places.length === 0 ? (
+          <section className="empty-state">
+            <img src={mascots.empty} alt="" />
+            <strong>先加一个常用地点</strong>
+            <span>公司、家、学校都可以，之后推荐会自动匹配。</span>
+          </section>
+        ) : null}
         {places.map((place) => (
           <article className="place-card" key={place.id}>
+            <img className="place-card__asset" src={uiAssets.actionNearby} alt="" />
             <div>
               <h3>{place.name}</h3>
               <p>{place.address}</p>

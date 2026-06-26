@@ -1,5 +1,5 @@
-import locationIcon from '../assets/icons/bamboo-location.png';
 import type { Place } from '../api/types';
+import { uiAssets } from '../assets/visualAssets';
 
 type PlacePillProps = {
   place?: Place | null;
@@ -9,7 +9,7 @@ type PlacePillProps = {
 export function PlacePill({ place, unmatched = false }: PlacePillProps) {
   return (
     <div className={`place-pill ${unmatched ? 'place-pill--unmatched' : ''}`}>
-      <img src={locationIcon} alt="" />
+      <img src={uiAssets.navPlaces} alt="" />
       <span>{place ? place.name : unmatched ? '新位置' : '定位中'}</span>
     </div>
   );

@@ -1,7 +1,7 @@
 import { useEffect, useMemo, useState } from 'react';
-import { Import, MapPin, ShieldCheck, Store as StoreIcon, Utensils } from 'lucide-react';
 import { api, getStoredToken, setStoredToken } from './api/client';
 import type { LocationPoint, Place, PublicUser, Store } from './api/types';
+import { mascots, uiAssets } from './assets/visualAssets';
 import { AppShell } from './components/AppShell';
 import { LoginScreen } from './screens/LoginScreen';
 import { HomeScreen } from './screens/HomeScreen';
@@ -27,12 +27,12 @@ export default function App() {
 
   const navItems = useMemo(() => {
     const items = [
-      { id: 'home', label: '开饭', icon: Utensils },
-      { id: 'places', label: '地点', icon: MapPin },
-      { id: 'stores', label: '店铺', icon: StoreIcon },
-      { id: 'import', label: '导入', icon: Import }
+      { id: 'home', label: '开饭', iconSrc: uiAssets.navHome },
+      { id: 'places', label: '地点', iconSrc: uiAssets.navPlaces },
+      { id: 'stores', label: '店铺', iconSrc: uiAssets.navStores },
+      { id: 'import', label: '导入', iconSrc: uiAssets.navImport }
     ];
-    if (me?.role === 'super_admin') items.push({ id: 'admin', label: '管理', icon: ShieldCheck });
+    if (me?.role === 'super_admin') items.push({ id: 'admin', label: '管理', iconSrc: uiAssets.navAdmin });
     return items;
   }, [me?.role]);
 
@@ -119,7 +119,12 @@ export default function App() {
   }
 
   if (booting) {
-    return <main className="app app--loading">饭饭狸醒醒中</main>;
+    return (
+      <main className="app app--loading">
+        <img src={mascots.loading} alt="" />
+        <span>饭饭狸醒醒中</span>
+      </main>
+    );
   }
 
   if (!me) {

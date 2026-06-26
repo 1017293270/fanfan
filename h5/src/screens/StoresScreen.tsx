@@ -1,6 +1,7 @@
 import { useMemo, useState } from 'react';
 import { api } from '../api/client';
 import type { Place, Store, StorePlaceLink, StorePlaceStatus } from '../api/types';
+import { mascots, uiAssets } from '../assets/visualAssets';
 import { BrandHeader } from '../components/BrandHeader';
 import { Sheet } from '../components/Sheet';
 import { StoreCard } from '../components/StoreCard';
@@ -91,21 +92,41 @@ export function StoresScreen({ places, stores, activePlace, onChanged }: StoresS
 
   return (
     <div className="screen-flow">
-      <BrandHeader compact title="我的店铺库" subtitle="每个账号都有自己的常吃、喜欢、吃腻和拉黑。" />
+      <BrandHeader compact mascotSrc={mascots.riceBowl} title="我的店铺库" subtitle="每个账号都有自己的常吃、喜欢、吃腻和拉黑。" />
       <div className="toolbar">
         <input placeholder="搜店名、分类、地址" value={query} onChange={(event) => setQuery(event.target.value)} />
-        <button type="button" onClick={openCreate}>
+        <button className="toolbar__image-button" type="button" onClick={openCreate}>
+          <img src={uiAssets.actionEat} alt="" />
           添加
         </button>
       </div>
       <div className="chips">
         {(['all', 'active', 'favorite', 'tired', 'blocked'] as const).map((item) => (
           <button className={`chip ${status === item ? 'is-on' : ''}`} type="button" key={item} onClick={() => setStatus(item)}>
+            <img
+              src={
+                item === 'favorite'
+                  ? uiAssets.actionFavorite
+                  : item === 'tired'
+                    ? uiAssets.actionEat
+                    : item === 'blocked'
+                      ? uiAssets.actionDislike
+                      : uiAssets.badgeKaifanliRecommend
+              }
+              alt=""
+            />
             {item === 'all' ? '全部' : item === 'active' ? '常吃' : item === 'favorite' ? '喜欢' : item === 'tired' ? '吃腻' : '拉黑'}
           </button>
         ))}
       </div>
       <div className="card-list">
+        {filtered.length === 0 ? (
+          <section className="empty-state">
+            <img src={mascots.empty} alt="" />
+            <strong>这里还没有店</strong>
+            <span>手动添加，或者从高德导入附近餐厅。</span>
+          </section>
+        ) : null}
         {filtered.map((store) => (
           <StoreCard key={store.id} store={store} places={places} onEdit={openEdit} onDelete={remove} onStatus={changeStatus} />
         ))}

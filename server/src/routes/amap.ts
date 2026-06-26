@@ -28,24 +28,29 @@ export async function registerAmapRoutes(app: FastifyInstance, deps: AmapRouteDe
       return reply.status(400).send({ message: 'Invalid AMap search query' });
     }
 
-    const candidates = await deps.amapClient.searchRestaurants({
-      location: { latitude, longitude },
-      radiusMeters,
-      keywords: query.keyword ? [query.keyword] : ['餐饮']
-    });
-    return {
-      pois: candidates.map((candidate) => ({
-        amapPoiId: candidate.poiId,
-        name: candidate.name,
-        category: candidate.category,
-        address: candidate.address,
-        latitude: candidate.location?.latitude ?? latitude,
-        longitude: candidate.location?.longitude ?? longitude,
-        avgPrice: candidate.avgPrice,
-        rating: candidate.rating,
-        distanceMeters: candidate.distanceMeters,
-        tags: candidate.tags
-      }))
-    };
+    try {
+      const candidates = await deps.amapClient.searchRestaurants({
+        location: { latitude, longitude },
+        radiusMeters,
+        keywords: query.keyword ? [query.keyword] : ['餐饮']
+      });
+      return {
+        pois: candidates.map((candidate) => ({
+          amapPoiId: candidate.poiId,
+          name: candidate.name,
+          category: candidate.category,
+          address: candidate.address,
+          latitude: candidate.location?.latitude ?? latitude,
+          longitude: candidate.location?.longitude ?? longitude,
+          avgPrice: candidate.avgPrice,
+          rating: candidate.rating,
+          distanceMeters: candidate.distanceMeters,
+          tags: candidate.tags
+        }))
+      };
+    } catch (error) {
+      request.log.error(error);
+      return reply.status(502).send({ message: '高德搜索暂时不可用，稍后再试' });
+    }
   });
 }

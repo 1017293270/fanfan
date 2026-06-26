@@ -1,4 +1,5 @@
 import type { Place, Store, StorePlaceLink } from '../api/types';
+import { uiAssets } from '../assets/visualAssets';
 
 type StoreCardProps = {
   store: Store;
@@ -13,6 +14,13 @@ const statusText: Record<StorePlaceLink['status'], string> = {
   favorite: '喜欢',
   blocked: '拉黑',
   tired: '吃腻'
+};
+
+const statusIcon: Record<StorePlaceLink['status'], string> = {
+  active: uiAssets.actionEat,
+  favorite: uiAssets.actionFavorite,
+  blocked: uiAssets.actionDislike,
+  tired: uiAssets.actionSpicy
 };
 
 export function StoreCard({ store, places, onStatus, onEdit, onDelete }: StoreCardProps) {
@@ -31,7 +39,12 @@ export function StoreCard({ store, places, onStatus, onEdit, onDelete }: StoreCa
             {store.category} · {store.avgPrice ? `人均${store.avgPrice}元` : '价格待补'} · {placeNames || '未关联地点'}
           </p>
         </div>
-        {primaryLink ? <span className={`status-badge status-badge--${primaryLink.status}`}>{statusText[primaryLink.status]}</span> : null}
+        {primaryLink ? (
+          <span className={`status-badge status-badge--${primaryLink.status}`}>
+            <img src={statusIcon[primaryLink.status]} alt="" />
+            {statusText[primaryLink.status]}
+          </span>
+        ) : null}
       </div>
       <div className="tag-row">
         {(primaryLink?.tags.length ? primaryLink.tags : ['待标记']).map((tag) => (
@@ -45,12 +58,15 @@ export function StoreCard({ store, places, onStatus, onEdit, onDelete }: StoreCa
         {primaryLink ? (
           <>
             <button type="button" onClick={() => onStatus?.(primaryLink, 'favorite')}>
+              <img src={uiAssets.actionFavorite} alt="" />
               喜欢
             </button>
             <button type="button" onClick={() => onStatus?.(primaryLink, 'tired')}>
+              <img src={uiAssets.actionEat} alt="" />
               吃腻
             </button>
             <button type="button" onClick={() => onStatus?.(primaryLink, 'blocked')}>
+              <img src={uiAssets.actionDislike} alt="" />
               拉黑
             </button>
           </>

@@ -1,6 +1,7 @@
 import { useState } from 'react';
 import { api, setStoredToken } from '../api/client';
 import type { PublicUser } from '../api/types';
+import { mascots, uiAssets } from '../assets/visualAssets';
 import { BrandHeader } from '../components/BrandHeader';
 
 type LoginScreenProps = {
@@ -35,7 +36,12 @@ export function LoginScreen({ onAuth }: LoginScreenProps) {
 
   return (
     <main className="auth-screen">
-      <BrandHeader title="今天想吃什么？" subtitle="先登录饭饭狸，记住你的公司、家和常吃店。" />
+      <BrandHeader mascotSrc={mascots.happy} title="今天想吃什么？" subtitle="先登录饭饭狸，记住你的公司、家和常吃店。" />
+      <div className="asset-strip" aria-hidden="true">
+        <img src={uiAssets.navHome} alt="" />
+        <img src={uiAssets.navPlaces} alt="" />
+        <img src={uiAssets.navStores} alt="" />
+      </div>
       <section className="auth-card">
         <div className="segmented">
           <button className={mode === 'login' ? 'is-active' : ''} type="button" onClick={() => setMode('login')}>
@@ -72,6 +78,13 @@ export function LoginScreen({ onAuth }: LoginScreenProps) {
         <button className="text-button" type="button" onClick={() => setError('请联系超级管理员重置密码。')}>
           忘记密码
         </button>
+      </section>
+      <section className="mini-story-card">
+        <img src={mascots.thinking} alt="" />
+        <div>
+          <strong>账号会记住你的饭点习惯</strong>
+          <span>公司、家和常吃店会分开推荐，越用越省心。</span>
+        </div>
       </section>
     </main>
   );

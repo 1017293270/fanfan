@@ -1,9 +1,7 @@
-import type { LucideIcon } from 'lucide-react';
-
 export type NavItem = {
   id: string;
   label: string;
-  icon: LucideIcon;
+  iconSrc: string;
 };
 
 type BottomNavProps = {
@@ -16,7 +14,6 @@ export function BottomNav({ items, activeTab, onTabChange }: BottomNavProps) {
   return (
     <nav className="bottom-nav" aria-label="主导航">
       {items.map((item) => {
-        const Icon = item.icon;
         const active = item.id === activeTab;
         return (
           <button
@@ -26,7 +23,7 @@ export function BottomNav({ items, activeTab, onTabChange }: BottomNavProps) {
             aria-current={active ? 'page' : undefined}
             onClick={() => onTabChange(item.id)}
           >
-            <Icon size={19} strokeWidth={2.4} />
+            <img src={item.iconSrc} alt="" />
             <span>{item.label}</span>
           </button>
         );

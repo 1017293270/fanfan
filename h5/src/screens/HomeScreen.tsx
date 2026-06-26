@@ -1,12 +1,7 @@
 import { useState } from 'react';
 import { api } from '../api/client';
 import type { LocationPoint, Place, RecommendationResponse } from '../api/types';
-import avatarUrl from '../assets/brand/kaifanli-avatar-144.png';
-import bowlIcon from '../assets/icons/bowl-sparkle.png';
-import dislikeIcon from '../assets/icons/paw-dislike.png';
-import heartIcon from '../assets/icons/paw-heart.png';
-import navIcon from '../assets/icons/chopsticks-nav.png';
-import refreshIcon from '../assets/icons/paw-refresh.png';
+import { mascots, uiAssets } from '../assets/visualAssets';
 import { BrandHeader } from '../components/BrandHeader';
 import { IconButton } from '../components/IconButton';
 import { PlacePill } from '../components/PlacePill';
@@ -21,9 +16,59 @@ type HomeScreenProps = {
   onLocate: () => Promise<LocationPoint>;
 };
 
-const distanceOptions = [800, 1500, 3000];
-const budgetOptions = [30, 50, 100];
-const cravingOptions = ['米饭', '热汤面', '清淡', '面食'];
+const distanceOptions = [
+  { value: 800, label: '800m 内', icon: uiAssets.chipTime },
+  { value: 1500, label: '1.5km 内', icon: uiAssets.actionNearby },
+  { value: 3000, label: '3km 内', icon: uiAssets.actionNavigate }
+];
+
+const budgetOptions = [
+  { value: 30, icon: uiAssets.chipWallet },
+  { value: 50, icon: uiAssets.actionBudget },
+  { value: 100, icon: uiAssets.actionBudget }
+];
+
+const cravingOptions = [
+  { value: '米饭', icon: uiAssets.chipRice },
+  { value: '热汤面', icon: uiAssets.chipNoodle },
+  { value: '清淡', icon: uiAssets.chipLeaf },
+  { value: '面食', icon: uiAssets.chipNoodle },
+  { value: '火锅', icon: uiAssets.chipHotpot },
+  { value: '轻食', icon: uiAssets.chipSalad },
+  { value: '烧烤', icon: uiAssets.chipSkewer },
+  { value: '甜品', icon: uiAssets.chipDessert }
+];
+
+const moodOptions = [
+  {
+    label: '开心',
+    image: mascots.happy,
+    preference: '想吃让人开心的家常菜，不要等太久',
+    craving: '米饭',
+    spicy: 'mild' as const
+  },
+  {
+    label: '好饿',
+    image: mascots.hungry,
+    preference: '好饿，想吃饱一点，米饭或者热汤都行',
+    craving: '米饭',
+    spicy: 'mild' as const
+  },
+  {
+    label: '思考',
+    image: mascots.thinking,
+    preference: '我还没想好，你根据距离、预算和常吃店帮我拍板',
+    craving: '清淡',
+    spicy: 'none' as const
+  },
+  {
+    label: '惊讶',
+    image: mascots.surprised,
+    preference: '今天想换个新鲜的，但不要太辣',
+    craving: '面食',
+    spicy: 'none' as const
+  }
+];
 
 export function HomeScreen({ activePlace, location, unmatched, onChanged, onLocate }: HomeScreenProps) {
   const [textPreference, setTextPreference] = useState('想吃热乎的，不太辣，别太远');
@@ -76,15 +121,33 @@ export function HomeScreen({ activePlace, location, unmatched, onChanged, onLoca
   }
 
   const primary = result?.primaryRecommendation;
+  const stateMascot = busy ? mascots.loading : primary ? mascots.recommend : unmatched ? mascots.noIdea : mascots.recommend;
 
   return (
     <div className="screen-flow">
       <div className="home-topline">
-        <BrandHeader title="今天想吃什么？" subtitle="说给饭饭狸听，少纠结，快开饭。" />
+        <BrandHeader mascotSrc={primary ? mascots.recommend : mascots.happy} title="今天想吃什么？" subtitle="说给饭饭狸听，少纠结，快开饭。" />
         <PlacePill place={activePlace} unmatched={unmatched} />
+      </div>
+      <div className="mood-strip" aria-label="心情快捷入口">
+        {moodOptions.map((option) => (
+          <button
+            type="button"
+            key={option.label}
+            onClick={() => {
+              setTextPreference(option.preference);
+              setCraving(option.craving);
+              setSpicyPreference(option.spicy);
+            }}
+          >
+            <img src={option.image} alt="" />
+            <span>{option.label}</span>
+          </button>
+        ))}
       </div>
       {unmatched ? (
         <section className="notice-card">
+          <img src={mascots.noIdea} alt="" />
           <span>当前位置还不是常用地点</span>
           <button type="button" onClick={() => setPlaceSheet(true)}>
             加一下
@@ -94,32 +157,37 @@ export function HomeScreen({ activePlace, location, unmatched, onChanged, onLoca
       <textarea className="preference-input" value={textPreference} onChange={(event) => setTextPreference(event.target.value)} />
       <div className="chips">
         {distanceOptions.map((item) => (
-          <button className={`chip ${distanceMeters === item ? 'is-on' : ''}`} type="button" key={item} onClick={() => setDistanceMeters(item)}>
-            {item >= 1000 ? `${item / 1000}km 内` : `${item}m 内`}
+          <button className={`chip ${distanceMeters === item.value ? 'is-on' : ''}`} type="button" key={item.value} onClick={() => setDistanceMeters(item.value)}>
+            <img src={item.icon} alt="" />
+            {item.label}
           </button>
         ))}
         {budgetOptions.map((item) => (
-          <button className={`chip ${budgetPerPerson === item ? 'is-on' : ''}`} type="button" key={item} onClick={() => setBudgetPerPerson(item)}>
-            人均 {item}
+          <button className={`chip ${budgetPerPerson === item.value ? 'is-on' : ''}`} type="button" key={item.value} onClick={() => setBudgetPerPerson(item.value)}>
+            <img src={item.icon} alt="" />
+            人均 {item.value}
           </button>
         ))}
         <button className={`chip ${spicyPreference === 'mild' ? 'is-on' : ''}`} type="button" onClick={() => setSpicyPreference('mild')}>
+          <img src={uiAssets.chipChili} alt="" />
           少辣
         </button>
         <button className={`chip ${spicyPreference === 'none' ? 'is-on' : ''}`} type="button" onClick={() => setSpicyPreference('none')}>
+          <img src={uiAssets.chipLeaf} alt="" />
           不辣
         </button>
         {cravingOptions.map((item) => (
-          <button className={`chip ${craving === item ? 'is-on' : ''}`} type="button" key={item} onClick={() => setCraving(item)}>
-            {item}
+          <button className={`chip ${craving === item.value ? 'is-on' : ''}`} type="button" key={item.value} onClick={() => setCraving(item.value)}>
+            <img src={item.icon} alt="" />
+            {item.value}
           </button>
         ))}
       </div>
       <button className="primary-button" type="button" disabled={busy} onClick={recommend}>
         {busy ? '饭饭狸在看' : '让饭饭狸拍板'}
       </button>
-      <section className="state-card">
-        <img src={avatarUrl} alt="" />
+      <section className="state-card state-card--illustrated">
+        <img src={stateMascot} alt="" />
         <div>
           <strong>{message}</strong>
           <span>{activePlace ? `按「${activePlace.name}」的常用店铺优先。` : '饭饭狸会先看看附近。'}</span>
@@ -128,9 +196,12 @@ export function HomeScreen({ activePlace, location, unmatched, onChanged, onLoca
       {primary ? (
         <>
           <article className="recommend-card">
-            <div className="recommend-card__badge">
-              <img src={bowlIcon} alt="" />
-              饭饭狸推荐
+            <div className="recommend-card__visual-row">
+              <img className="recommend-card__mascot" src={mascots.riceBowl} alt="" />
+              <div>
+                <img className="recommend-card__badge-image" src={uiAssets.badgeAiRecommend} alt="AI 推荐" />
+                <img className="recommend-card__match-image" src={uiAssets.badgeMatch} alt="92% 匹配" />
+              </div>
             </div>
             <h2>{primary.name}</h2>
             <p className="meta">
@@ -162,10 +233,10 @@ export function HomeScreen({ activePlace, location, unmatched, onChanged, onLoca
             </section>
           ) : null}
           <div className="action-grid">
-            <IconButton iconSrc={refreshIcon} label="换一批" onClick={recommend} />
-            <IconButton iconSrc={heartIcon} label="收藏" />
-            <IconButton iconSrc={dislikeIcon} label="不喜欢" />
-            <IconButton iconSrc={navIcon} label="带我去" variant="green" />
+            <IconButton iconSrc={uiAssets.actionRefresh} label="换一批" onClick={recommend} />
+            <IconButton iconSrc={uiAssets.actionFavorite} label="收藏" />
+            <IconButton iconSrc={uiAssets.actionDislike} label="不喜欢" />
+            <IconButton iconSrc={uiAssets.actionNavigate} label="带我去" variant="green" />
           </div>
         </>
       ) : null}

@@ -29,6 +29,84 @@ type RequestOptions = {
   token?: string | null;
 };
 
+function parseMaybeJson(value: unknown): unknown {
+  if (typeof value !== 'string') return value;
+  const trimmed = value.trim();
+  if (!trimmed.startsWith('{') && !trimmed.startsWith('[')) return value;
+  try {
+    return JSON.parse(trimmed) as unknown;
+  } catch {
+    return value;
+  }
+}
+
+function contextMessage(path: string, status: number): string {
+  if (path.startsWith('/api/auth/login')) {
+    if (status === 401) return '账号或密码不对。';
+    return '登录失败，检查账号密码后再试。';
+  }
+  if (path.startsWith('/api/auth/register')) {
+    if (status === 409) return '这个账号名已经被注册。';
+    return '注册失败，检查邀请码和账号信息后再试。';
+  }
+  if (path.startsWith('/api/amap/')) {
+    if (status === 400) return '高德搜索请求异常，换个关键词或稍后再试。';
+    if (status === 503) return '高德服务还没配置好，检查一下高德 Key。';
+    return '高德搜索暂时不可用，稍后再试。';
+  }
+  if (path.startsWith('/api/recommendations')) {
+    if (status === 404) return '这次没找到合适的餐厅，放宽距离或换个口味试试。';
+    return '推荐服务暂时开小差了，稍后再拍板。';
+  }
+  if (status === 401) return '登录状态过期了，请重新登录。';
+  if (status === 403) return '当前账号没有权限执行这个操作。';
+  if (status === 404) return '没找到对应内容，刷新后再试。';
+  if (status >= 500) return '服务暂时不可用，稍后再试。';
+  if (status === 400) return '提交内容有点不对，检查后再试。';
+  return `请求失败：${status}`;
+}
+
+const knownServerMessages: Record<string, string> = {
+  'Authentication required': '登录状态过期了，请重新登录。',
+  'Admin access required': '当前账号没有管理员权限。',
+  'Invalid username or password': '账号或密码不对。',
+  'Account disabled': '账号已被停用，请联系管理员。',
+  'Invalid or used invite code': '邀请码无效或已被使用。',
+  'Username already exists': '这个账号名已经被注册。',
+  'No matching restaurants found': '这次没找到合适的餐厅，放宽距离或换个口味试试。',
+  'Place not found': '没有找到这个常用地点。',
+  'Store not found': '没有找到这个店铺。',
+  'Invite code not found': '没有找到这个邀请码。',
+  'AMap client unavailable': '高德服务还没配置好，检查一下高德 Key。'
+};
+
+function normalizeServerMessage(message: string, status: number, path: string): string | undefined {
+  if (knownServerMessages[message]) return knownServerMessages[message];
+  if (message.includes('Bad Request')) return undefined;
+  if (/^(AMap|AI|Recommendation|Invalid)\b/i.test(message)) return undefined;
+  if (/failed|error|unavailable|required/i.test(message) && !/[^\x00-\x7F]/.test(message)) return undefined;
+  return message || contextMessage(path, status);
+}
+
+function extractApiErrorMessage(data: unknown, status: number, path: string): string {
+  const parsed = parseMaybeJson(data);
+  if (parsed && typeof parsed === 'object' && !Array.isArray(parsed)) {
+    const record = parsed as Record<string, unknown>;
+    const message = parseMaybeJson(record.message);
+    const detail = parseMaybeJson(record.detail);
+    if (typeof message === 'string' && message) {
+      const normalized = normalizeServerMessage(message, status, path);
+      if (normalized) return normalized;
+    }
+    if (detail && detail !== parsed) return extractApiErrorMessage(detail, status, path);
+  }
+  if (typeof parsed === 'string' && parsed) {
+    const normalized = normalizeServerMessage(parsed, status, path);
+    if (normalized) return normalized;
+  }
+  return contextMessage(path, status);
+}
+
 async function requestJson<T>(path: string, options: RequestOptions = {}): Promise<T> {
   const headers: Record<string, string> = {
     Accept: 'application/json'
@@ -46,7 +124,7 @@ async function requestJson<T>(path: string, options: RequestOptions = {}): Promi
   if (response.status === 204) return undefined as T;
   const data = await response.json().catch(() => ({}));
   if (!response.ok) {
-    throw new Error(data.message || `请求失败：${response.status}`);
+    throw new Error(extractApiErrorMessage(data, response.status, path));
   }
   return data as T;
 }

@@ -1,6 +1,7 @@
 import { useEffect, useState } from 'react';
 import { api } from '../api/client';
 import type { InviteCode, PublicUser } from '../api/types';
+import { mascots, uiAssets } from '../assets/visualAssets';
 import { BrandHeader } from '../components/BrandHeader';
 
 type AdminScreenProps = {
@@ -43,20 +44,25 @@ export function AdminScreen({ currentUser }: AdminScreenProps) {
   if (currentUser.role !== 'super_admin') {
     return (
       <div className="screen-flow">
-        <BrandHeader compact title="我的账号" subtitle="普通账号只管理自己的地点和店铺。" />
+        <BrandHeader compact mascotSrc={mascots.thinking} title="我的账号" subtitle="普通账号只管理自己的地点和店铺。" />
       </div>
     );
   }
 
   return (
     <div className="screen-flow">
-      <BrandHeader compact title="管理员" subtitle="看账号，发邀请码，不碰用户密码。" />
+      <BrandHeader compact mascotSrc={mascots.thinking} title="管理员" subtitle="看账号，发邀请码，不碰用户密码。" />
       <section className="search-card">
+        <div className="search-card__intro">
+          <img src={uiAssets.inviteTicket} alt="" />
+          <span>只做账号和邀请码管理，不保存明文密码。</span>
+        </div>
         <label>
           新邀请码
           <input placeholder="留空自动生成" value={newCode} onChange={(event) => setNewCode(event.target.value)} />
         </label>
-        <button className="primary-button" type="button" onClick={createCode}>
+        <button className="primary-button primary-button--with-icon" type="button" onClick={createCode}>
+          <img src={uiAssets.inviteTicket} alt="" />
           生成邀请码
         </button>
         {message ? <div className="form-error form-error--soft">{message}</div> : null}
