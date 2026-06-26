@@ -1,28 +1,30 @@
 .state {
   display: flex;
   align-items: center;
-  gap: 20rpx;
-  padding: 28rpx;
-  border-radius: 28rpx;
+  gap: 23rpx;
+  padding: 29rpx;
+  border-radius: 31rpx;
   background: #fff;
   border: 2rpx solid #f4e3d9;
 }
 
 .state__avatar {
-  width: 88rpx;
-  height: 88rpx;
+  width: 92rpx;
+  height: 92rpx;
   flex: none;
+  border-radius: 18rpx;
 }
 
 .state__title {
   color: #2f2926;
-  font-size: 30rpx;
-  font-weight: 700;
+  font-size: 31rpx;
+  font-weight: 900;
+  line-height: 1.25;
 }
 
 .state__body {
   margin-top: 8rpx;
   color: #8a7469;
-  font-size: 24rpx;
+  font-size: 25rpx;
   line-height: 1.5;
 }

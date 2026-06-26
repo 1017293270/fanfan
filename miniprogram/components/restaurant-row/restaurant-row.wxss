@@ -2,34 +2,48 @@
   display: flex;
   align-items: center;
   justify-content: space-between;
-  padding: 24rpx 0;
+  gap: 19rpx;
+  padding: 23rpx 0;
   border-top: 2rpx solid #f4e3d9;
 }
 
 .row__main {
   min-width: 0;
+  flex: 1;
 }
 
 .row__name {
-  font-size: 30rpx;
-  font-weight: 700;
+  font-size: 29rpx;
+  font-weight: 800;
   color: #2f2926;
+  line-height: 1.25;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
 }
 
 .row__meta {
   margin-top: 8rpx;
-  font-size: 24rpx;
+  font-size: 23rpx;
   color: #8a7469;
+  line-height: 1.3;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
 }
 
 .row__button {
   width: 104rpx;
-  height: 56rpx;
-  line-height: 56rpx;
+  height: 58rpx;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  line-height: normal;
   border-radius: 999rpx;
   background: #fff0d4;
   color: #7b4d00;
-  font-size: 24rpx;
+  font-size: 23rpx;
+  font-weight: 800;
   padding: 0;
   flex: none;
 }

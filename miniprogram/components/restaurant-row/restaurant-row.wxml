@@ -1,7 +1,7 @@
 <view class="row">
   <view class="row__main">
     <view class="row__name">{{restaurant.name}}</view>
-    <view class="row__meta">{{restaurant.category}} · {{distanceText}} · 人均{{restaurant.avgPrice || '-'}}元</view>
+    <view class="row__meta">{{categoryText}} · {{distanceText}} · 人均{{restaurant.avgPrice || '-'}}元</view>
   </view>
-  <button class="row__button" bindtap="handleChoose">看看</button>
+  <view class="row__button" bindtap="handleChoose">看看</view>
 </view>

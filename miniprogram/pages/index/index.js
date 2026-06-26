@@ -13,29 +13,23 @@ Page({
       distanceMeters: 1500,
       budgetPerPerson: 30,
       spicyPreference: 'mild',
-      craving: '米饭',
+      craving: '',
       openNow: true
     },
     distanceOptions: [
-      { label: '15分钟内', value: 1500 },
-      { label: '近一点', value: 800 },
-      { label: '远点也行', value: 3000 }
+      { label: '1.5km 内', value: 1500 },
+      { label: '3km 内', value: 3000 }
     ],
     budgetOptions: [
-      { label: '30元内', value: 30 },
-      { label: '50元内', value: 50 },
-      { label: '今天吃好点', value: 100 }
+      { label: '人均 30', value: 30 },
+      { label: '人均 50', value: 50 }
     ],
     spicyOptions: [
-      { label: '不太辣', value: 'mild' },
-      { label: '不吃辣', value: 'none' },
-      { label: '能吃辣', value: 'spicy' }
+      { label: '少辣', value: 'mild' }
     ],
     cravingOptions: [
-      { label: '想吃米饭', value: '米饭' },
-      { label: '热乎的', value: '热乎' },
-      { label: '来碗面', value: '面食' },
-      { label: '清淡点', value: '清淡' }
+      { label: '米饭', value: '米饭' },
+      { label: '热汤面', value: '热汤面' }
     ],
     primaryRecommendation: null,
     alternatives: []

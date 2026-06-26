@@ -1,18 +1,21 @@
 .chip {
-  min-height: 64rpx;
-  padding: 0 24rpx;
+  min-height: 65rpx;
+  padding: 0 25rpx;
   border-radius: 999rpx;
   display: inline-flex;
   align-items: center;
   justify-content: center;
   background: #fff;
-  color: #5f514b;
-  border: 2rpx solid #f1ded4;
-  font-size: 26rpx;
+  color: #66544d;
+  border: 2rpx solid #f4e3d9;
+  font-size: 25rpx;
+  font-weight: 700;
+  line-height: 1.2;
 }
 
 .chip--selected {
-  background: #f24b3a;
-  color: #fff;
-  border-color: #f24b3a;
+  background: #ffe9df;
+  color: #a2382e;
+  border-color: rgba(242, 75, 58, 0.32);
+  font-weight: 900;
 }

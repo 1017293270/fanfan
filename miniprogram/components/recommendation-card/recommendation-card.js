@@ -1,16 +1,20 @@
-const { formatDistance } = require('../../utils/viewModel');
+const { formatCategory, formatDistance, getVisibleTags } = require('../../utils/viewModel');
 
 Component({
   properties: {
     restaurant: Object
   },
   data: {
-    distanceText: ''
+    categoryText: '',
+    distanceText: '',
+    visibleTags: []
   },
   observers: {
     restaurant(value) {
       this.setData({
-        distanceText: value ? formatDistance(value.distanceMeters) : ''
+        categoryText: value ? formatCategory(value.category) : '',
+        distanceText: value ? formatDistance(value.distanceMeters) : '',
+        visibleTags: value ? getVisibleTags(value.tags, value.category) : []
       });
     }
   }

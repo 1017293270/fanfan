@@ -4,9 +4,10 @@
   ],
   "window": {
     "navigationBarTitleText": "开饭狸",
-    "navigationBarBackgroundColor": "#F24B3A",
-    "navigationBarTextStyle": "white",
-    "backgroundColor": "#FFF8EF"
+    "navigationBarBackgroundColor": "#FFF8EF",
+    "navigationBarTextStyle": "black",
+    "backgroundColor": "#FFF8EF",
+    "navigationStyle": "custom"
   },
   "permission": {
     "scope.userLocation": {
