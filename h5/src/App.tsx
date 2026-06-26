@@ -33,6 +33,22 @@ function formatLocationTime() {
   });
 }
 
+function isLoopbackHost(hostname: string) {
+  return hostname === 'localhost' || hostname === '127.0.0.1' || hostname === '[::1]' || hostname === '::1';
+}
+
+function isHttpLanPreview() {
+  if (typeof window === 'undefined') return false;
+  return window.location.protocol !== 'https:' && !window.isSecureContext && !isLoopbackHost(window.location.hostname);
+}
+
+function placeToLocation(place: Place): LocationPoint {
+  return {
+    latitude: place.latitude,
+    longitude: place.longitude
+  };
+}
+
 export default function App() {
   const [me, setMe] = useState<PublicUser | null>(null);
   const [booting, setBooting] = useState(true);
@@ -56,20 +72,34 @@ export default function App() {
   }, [me?.role]);
 
   async function locate(): Promise<LocationPoint> {
+    if (isHttpLanPreview()) {
+      const next = activePlace ? placeToLocation(activePlace) : fallbackLocation;
+      setLocation(next);
+      setLocationStatus({
+        source: 'fallback',
+        title: '手机预览需要 HTTPS 定位',
+        detail: activePlace
+          ? `当前是 HTTP 局域网预览，手机浏览器会拦截定位；先按「${activePlace.name}」坐标处理。`
+          : `${formatLocationDetail(next)} · 当前是 HTTP 局域网预览，手机浏览器会拦截定位。`,
+        updatedAt: formatLocationTime()
+      });
+      return next;
+    }
     setLocationStatus({
       source: 'locating',
       title: '正在读取当前位置',
       detail: '请允许浏览器定位，饭饭狸会用它匹配公司或家。'
     });
     if (!navigator.geolocation) {
-      setLocation(fallbackLocation);
+      const next = activePlace ? placeToLocation(activePlace) : fallbackLocation;
+      setLocation(next);
       setLocationStatus({
         source: 'fallback',
         title: '浏览器不支持定位',
-        detail: `${formatLocationDetail(fallbackLocation)} · 使用兜底位置`,
+        detail: activePlace ? `先按「${activePlace.name}」坐标处理。` : `${formatLocationDetail(next)} · 使用兜底位置`,
         updatedAt: formatLocationTime()
       });
-      return fallbackLocation;
+      return next;
     }
     return new Promise((resolve) => {
       navigator.geolocation.getCurrentPosition(
@@ -87,15 +117,24 @@ export default function App() {
           });
           resolve(next);
         },
-        () => {
-          setLocation(fallbackLocation);
+        (error) => {
+          const next = activePlace ? placeToLocation(activePlace) : fallbackLocation;
+          const reason =
+            error.code === error.PERMISSION_DENIED
+              ? '定位权限被拒绝'
+              : error.code === error.TIMEOUT
+                ? '定位超时'
+                : '暂时读不到定位';
+          setLocation(next);
           setLocationStatus({
             source: 'fallback',
             title: '定位失败，使用兜底位置',
-            detail: `${formatLocationDetail(fallbackLocation)} · 请检查浏览器定位权限`,
+            detail: activePlace
+              ? `${reason}；先按「${activePlace.name}」坐标处理。`
+              : `${formatLocationDetail(next)} · ${reason}，请检查浏览器定位权限。`,
             updatedAt: formatLocationTime()
           });
-          resolve(fallbackLocation);
+          resolve(next);
         },
         { enableHighAccuracy: true, timeout: 5000, maximumAge: 60000 }
       );
@@ -118,6 +157,20 @@ export default function App() {
     if (placeResult.places.length === 0) {
       setActivePlace(null);
       setUnmatched(true);
+      return;
+    }
+    if (isHttpLanPreview()) {
+      const previewPlace = placeResult.places[0];
+      const next = placeToLocation(previewPlace);
+      setLocation(next);
+      setActivePlace(previewPlace);
+      setUnmatched(false);
+      setLocationStatus({
+        source: 'fallback',
+        title: '手机预览需要 HTTPS 定位',
+        detail: `当前 HTTP 局域网预览无法读取手机定位；先按「${previewPlace.name}」常用地点处理。`,
+        updatedAt: formatLocationTime()
+      });
       return;
     }
     try {
