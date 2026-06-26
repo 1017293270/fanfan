@@ -1,11 +1,17 @@
 import { useEffect, useState } from 'react';
 import { api } from '../api/client';
-import type { InviteCode, PublicUser } from '../api/types';
+import type { InviteCode, InviteCodeStatus, PublicUser } from '../api/types';
 import { mascots, uiAssets } from '../assets/visualAssets';
 import { BrandHeader } from '../components/BrandHeader';
 
 type AdminScreenProps = {
   currentUser: PublicUser;
+};
+
+const inviteCodeStatusText: Record<InviteCodeStatus, string> = {
+  unused: '未使用',
+  used: '已使用',
+  disabled: '已停用'
 };
 
 export function AdminScreen({ currentUser }: AdminScreenProps) {
@@ -88,7 +94,7 @@ export function AdminScreen({ currentUser }: AdminScreenProps) {
               <strong>{code.code}</strong>
               <small>{code.usedByUserId ? `已使用：${code.usedByUserId}` : '未使用'}</small>
             </span>
-            <em>{code.status}</em>
+            <em>{inviteCodeStatusText[code.status]}</em>
           </button>
         ))}
       </section>

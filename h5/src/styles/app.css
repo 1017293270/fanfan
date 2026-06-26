@@ -673,6 +673,13 @@ select {
   padding: 15px;
 }
 
+.store-card {
+  display: flex;
+  flex-direction: column;
+  gap: 14px;
+  padding: 18px;
+}
+
 .place-card {
   display: grid;
   grid-template-columns: 42px minmax(0, 1fr);
@@ -711,14 +718,48 @@ select {
 }
 
 .store-card__top {
-  display: flex;
-  justify-content: space-between;
+  display: grid;
+  grid-template-columns: 52px minmax(0, 1fr) auto;
+  align-items: start;
   gap: 12px;
 }
 
+.store-card__avatar {
+  width: 52px;
+  height: 52px;
+  display: grid;
+  place-items: center;
+  border: 1px solid var(--kfl-line);
+  border-radius: 16px;
+  background: var(--kfl-warm);
+}
+
+.store-card__avatar img {
+  width: 34px;
+  height: 34px;
+  object-fit: contain;
+}
+
+.store-card__summary {
+  min-width: 0;
+}
+
+.store-card__summary p {
+  margin-top: 6px;
+  line-height: 1.45;
+}
+
+.store-card__tags {
+  gap: 7px;
+  margin-top: 10px;
+}
+
 .store-card__note {
-  padding-top: 10px;
-  border-top: 1px solid var(--kfl-line);
+  margin: 0;
+  padding: 10px 12px;
+  border: 1px dashed var(--kfl-line);
+  border-radius: 14px;
+  background: rgba(255, 242, 229, 0.58);
 }
 
 .status-badge {
@@ -733,6 +774,52 @@ select {
   font-size: 12px;
   font-weight: 900;
   white-space: nowrap;
+}
+
+.store-card__actions {
+  display: flex;
+  flex-direction: column;
+  gap: 10px;
+}
+
+.store-card__status-actions {
+  display: grid;
+  grid-template-columns: repeat(3, minmax(0, 1fr));
+  gap: 8px;
+}
+
+.store-card__manage-actions {
+  display: grid;
+  grid-template-columns: repeat(2, minmax(0, 1fr));
+  gap: 8px;
+}
+
+.store-card__status-actions button,
+.store-card__manage-actions button {
+  min-height: 38px;
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  gap: 5px;
+  padding: 0 10px;
+  border: 1px solid var(--kfl-line);
+  border-radius: 999px;
+  background: #fff;
+  color: #5f514b;
+  font-size: 12px;
+  font-weight: 900;
+  white-space: nowrap;
+}
+
+.store-card__manage-actions button {
+  background: var(--kfl-warm);
+  color: #7b4d00;
+}
+
+.store-card__status-actions button img {
+  width: 18px;
+  height: 18px;
+  object-fit: contain;
 }
 
 .status-badge img {

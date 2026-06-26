@@ -25,6 +25,7 @@ const statusIcon: Record<StorePlaceLink['status'], string> = {
 
 export function StoreCard({ store, places, onStatus, onEdit, onDelete }: StoreCardProps) {
   const primaryLink = store.links[0];
+  const primaryIcon = primaryLink ? statusIcon[primaryLink.status] : uiAssets.actionEat;
   const placeNames = store.links
     .map((link) => places.find((place) => place.id === link.placeId)?.name)
     .filter(Boolean)
@@ -33,11 +34,21 @@ export function StoreCard({ store, places, onStatus, onEdit, onDelete }: StoreCa
   return (
     <article className="store-card">
       <div className="store-card__top">
-        <div>
+        <div className="store-card__avatar">
+          <img src={primaryIcon} alt="" />
+        </div>
+        <div className="store-card__summary">
           <h3>{store.name}</h3>
           <p>
             {store.category} · {store.avgPrice ? `人均${store.avgPrice}元` : '价格待补'} · {placeNames || '未关联地点'}
           </p>
+          <div className="tag-row store-card__tags">
+            {(primaryLink?.tags.length ? primaryLink.tags : ['待标记']).map((tag) => (
+              <span className="tag" key={tag}>
+                {tag}
+              </span>
+            ))}
+          </div>
         </div>
         {primaryLink ? (
           <span className={`status-badge status-badge--${primaryLink.status}`}>
@@ -46,37 +57,32 @@ export function StoreCard({ store, places, onStatus, onEdit, onDelete }: StoreCa
           </span>
         ) : null}
       </div>
-      <div className="tag-row">
-        {(primaryLink?.tags.length ? primaryLink.tags : ['待标记']).map((tag) => (
-          <span className="tag" key={tag}>
-            {tag}
-          </span>
-        ))}
-      </div>
       {primaryLink?.note ? <p className="store-card__note">{primaryLink.note}</p> : null}
-      <div className="compact-actions">
+      <div className="store-card__actions">
         {primaryLink ? (
-          <>
+          <div className="store-card__status-actions">
             <button type="button" onClick={() => onStatus?.(primaryLink, 'favorite')}>
               <img src={uiAssets.actionFavorite} alt="" />
-              喜欢
+              设为喜欢
             </button>
             <button type="button" onClick={() => onStatus?.(primaryLink, 'tired')}>
               <img src={uiAssets.actionEat} alt="" />
-              吃腻
+              吃腻了
             </button>
             <button type="button" onClick={() => onStatus?.(primaryLink, 'blocked')}>
               <img src={uiAssets.actionDislike} alt="" />
               拉黑
             </button>
-          </>
+          </div>
         ) : null}
-        <button type="button" onClick={() => onEdit?.(store)}>
-          编辑
-        </button>
-        <button type="button" onClick={() => onDelete?.(store)}>
-          删除
-        </button>
+        <div className="store-card__manage-actions">
+          <button type="button" onClick={() => onEdit?.(store)}>
+            编辑
+          </button>
+          <button type="button" onClick={() => onDelete?.(store)}>
+            删除
+          </button>
+        </div>
       </div>
     </article>
   );
