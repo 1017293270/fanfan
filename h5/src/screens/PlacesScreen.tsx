@@ -25,6 +25,9 @@ export function PlacesScreen({ places, location, locationStatus, onChanged, onLo
   const [resolvedAddress, setResolvedAddress] = useState('');
   const [resolving, setResolving] = useState(false);
   const [sheetMessage, setSheetMessage] = useState('');
+  const [saving, setSaving] = useState(false);
+  const [deleteTarget, setDeleteTarget] = useState<Place | null>(null);
+  const [deleting, setDeleting] = useState(false);
 
   function coordinateText(point: LocationPoint) {
     return `${point.latitude.toFixed(5)}, ${point.longitude.toFixed(5)}`;
@@ -80,36 +83,53 @@ export function PlacesScreen({ places, location, locationStatus, onChanged, onLo
   }
 
   async function save() {
-    const loc = draftLocation || (await onLocate().catch(() => location));
-    const cleanAddress = address.trim();
-    const shouldResolveAddress = !cleanAddress || cleanAddress === '当前位置';
-    const nextAddress = shouldResolveAddress ? resolvedAddress || (await onResolveAddress(loc)) : cleanAddress;
-    const safeName = name.trim() || '常用地点';
-    if (editing) {
-      await api.updatePlace(editing.id, {
-        name: safeName,
-        address: nextAddress || '当前位置附近',
-        latitude: loc.latitude,
-        longitude: loc.longitude,
-        radiusMeters
-      });
-    } else {
-      await api.createPlace({
-        name: safeName,
-        address: nextAddress || '当前位置附近',
-        latitude: loc.latitude,
-        longitude: loc.longitude,
-        radiusMeters
-      });
+    if (saving || resolving) return;
+    setSaving(true);
+    try {
+      const loc = draftLocation || (await onLocate().catch(() => location));
+      const cleanAddress = address.trim();
+      const shouldResolveAddress = !cleanAddress || cleanAddress === '当前位置';
+      const nextAddress = shouldResolveAddress ? resolvedAddress || (await onResolveAddress(loc)) : cleanAddress;
+      const safeName = name.trim() || '常用地点';
+      if (editing) {
+        await api.updatePlace(editing.id, {
+          name: safeName,
+          address: nextAddress || '当前位置附近',
+          latitude: loc.latitude,
+          longitude: loc.longitude,
+          radiusMeters
+        });
+      } else {
+        await api.createPlace({
+          name: safeName,
+          address: nextAddress || '当前位置附近',
+          latitude: loc.latitude,
+          longitude: loc.longitude,
+          radiusMeters
+        });
+      }
+      setOpen(false);
+      setEditing(null);
+      await onChanged();
+    } finally {
+      setSaving(false);
     }
-    setOpen(false);
-    setEditing(null);
-    await onChanged();
   }
 
-  async function remove(place: Place) {
-    await api.deletePlace(place.id);
-    await onChanged();
+  function requestRemove(place: Place) {
+    setDeleteTarget(place);
+  }
+
+  async function confirmRemove() {
+    if (!deleteTarget || deleting) return;
+    setDeleting(true);
+    try {
+      await api.deletePlace(deleteTarget.id);
+      setDeleteTarget(null);
+      await onChanged();
+    } finally {
+      setDeleting(false);
+    }
   }
 
   return (
@@ -153,7 +173,7 @@ export function PlacesScreen({ places, location, locationStatus, onChanged, onLo
               <button type="button" onClick={() => edit(place)}>
                 编辑
               </button>
-              <button type="button" onClick={() => remove(place)}>
+              <button type="button" onClick={() => requestRemove(place)}>
                 删除
               </button>
             </div>
@@ -198,9 +218,26 @@ export function PlacesScreen({ places, location, locationStatus, onChanged, onLo
             </button>
           ))}
         </div>
-        <button className="primary-button" type="button" onClick={save}>
-          保存
+        <button className="primary-button" type="button" disabled={saving || resolving} onClick={save}>
+          {saving ? '保存中' : '保存'}
         </button>
+      </Sheet>
+      <Sheet title="删除地点" open={Boolean(deleteTarget)} onClose={() => (!deleting ? setDeleteTarget(null) : undefined)}>
+        <section className="store-origin-card store-origin-card--danger">
+          <img src={mascots.surprised} alt="" />
+          <div>
+            <strong>{deleteTarget ? `要删除「${deleteTarget.name}」吗？` : '要删除这个地点吗？'}</strong>
+            <span>删除后，这个常用地点会从你的账号里移除；关联店铺之后需要重新归到其他地点。</span>
+          </div>
+        </section>
+        <div className="sheet-actions">
+          <button className="secondary-button" type="button" disabled={deleting} onClick={() => setDeleteTarget(null)}>
+            再想想
+          </button>
+          <button className="danger-button" type="button" disabled={deleting} onClick={confirmRemove}>
+            {deleting ? '删除中' : '确认删除'}
+          </button>
+        </div>
       </Sheet>
     </div>
   );
