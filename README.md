@@ -15,6 +15,30 @@
 真实微信 AppID 通过微信开发者工具或 `miniprogram/project.private.config.json` 本地配置，不提交到仓库。
 本地开发默认关闭微信开发者工具的 request 合法域名校验，以便请求 `http://127.0.0.1:8787`；上线或真机生产测试时需要部署 HTTPS 后端并在小程序后台配置合法域名。
 
+## H5 手机预览与定位
+
+同一 Wi-Fi 下用手机看页面，可以在电脑上启动：
+
+```powershell
+npm run dev:server
+npm run dev:h5:lan
+```
+
+然后手机打开 `http://电脑局域网 IP:5173/`，例如 `http://192.168.101.42:5173/`。这个地址可以看 UI 和账号/店铺流程，但手机浏览器会拦截 HTTP 局域网页面的定位能力；页面会提示“手机预览需要 HTTPS 定位”，并先按已有常用地点坐标兜底。
+
+无自有域名也有两种 HTTPS 办法：
+
+1. 推荐：使用临时 HTTPS 隧道，例如 Cloudflare Tunnel 或 ngrok，把 `http://127.0.0.1:5173` 暴露成一个临时 HTTPS 地址。因为 H5 通过同源 `/api` 走 Vite 代理，后端仍然可以留在本机 `8787`。
+2. 本机证书：用 mkcert 这类工具给局域网 IP 签一张包含 IP SAN 的证书，把本地根证书安装并信任到手机，然后用下面两个环境变量启动 H5：
+
+```powershell
+$env:VITE_DEV_HTTPS_KEY='E:\fanzainai\.certs\kaifanli-local-key.pem'
+$env:VITE_DEV_HTTPS_CERT='E:\fanzainai\.certs\kaifanli-local-cert.pem'
+npm run dev:h5:lan
+```
+
+第二种不需要买域名，但手机信任证书步骤比较繁琐；只为了真机定位调试时，临时 HTTPS 隧道通常更省心。
+
 ## H5 账号体系
 
 - 默认后端地址：`http://127.0.0.1:8787`

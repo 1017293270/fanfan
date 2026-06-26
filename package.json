@@ -10,6 +10,7 @@
   "scripts": {
     "dev:server": "npm --workspace server run dev",
     "dev:h5": "npm --workspace h5 run dev -- --host 127.0.0.1 --port 5173",
+    "dev:h5:lan": "npm --workspace h5 run dev -- --host 0.0.0.0 --port 5173",
     "build:server": "npm --workspace server run build",
     "build:h5": "npm --workspace h5 run build",
     "test": "npm --workspace server test",

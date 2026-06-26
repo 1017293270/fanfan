@@ -17,3 +17,4 @@ tmp-h5-dev*.log
 tmp-h5-dev.pid
 server/.data/
 .logs/
+.certs/
