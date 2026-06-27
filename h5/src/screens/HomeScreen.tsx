@@ -1,13 +1,15 @@
 import { useState } from 'react';
 import { api } from '../api/client';
-import type { LocationPoint, Place, RecommendationResponse, RestaurantCandidate } from '../api/types';
+import type { AmapPoi, LocationPoint, Place, RecommendationResponse, RestaurantCandidate } from '../api/types';
 import { mascots, uiAssets } from '../assets/visualAssets';
 import { BrandHeader } from '../components/BrandHeader';
 import { IconButton } from '../components/IconButton';
+import { PlaceAddressPicker } from '../components/PlaceAddressPicker';
 import { PlacePill } from '../components/PlacePill';
 import { Sheet } from '../components/Sheet';
 import type { LocationStatus } from '../types/location';
 import { openAmapNavigation } from '../utils/maps';
+import { applyPlaceSuggestionToDraft } from '../utils/placeSuggestionDraft';
 import { buildPreferencePrompt } from '../utils/preferencePrompt';
 
 type HomeScreenProps = {
@@ -362,6 +364,19 @@ export function HomeScreen({ activePlace, locationStatus, unmatched, onChanged, 
     await onChanged();
   }
 
+  function selectPlaceSuggestion(suggestion: AmapPoi) {
+    const next = applyPlaceSuggestionToDraft({
+      currentName: newPlaceName,
+      defaultNames: ['新地点', '常用地点'],
+      suggestion
+    });
+    setNewPlaceName(next.name);
+    setNewPlaceAddress(next.address);
+    setDraftLocation(next.location);
+    setResolvedAddress(next.address);
+    setPlaceSheetMessage('已选择高德候选地点，会按这个位置保存。');
+  }
+
   const primary = selectedCandidate ?? result?.primaryRecommendation;
   const alternativeCandidates = result
     ? [result.primaryRecommendation, ...result.alternatives].filter((item) => item.poiId !== primary?.poiId)
@@ -554,10 +569,13 @@ export function HomeScreen({ activePlace, locationStatus, unmatched, onChanged, 
           名称
           <input value={newPlaceName} onChange={(event) => setNewPlaceName(event.target.value)} />
         </label>
-        <label>
-          地址
-          <input value={newPlaceAddress} onChange={(event) => setNewPlaceAddress(event.target.value)} />
-        </label>
+        <PlaceAddressPicker
+          value={newPlaceAddress}
+          searchLocation={draftLocation}
+          disabled={resolvingPlace}
+          onChange={setNewPlaceAddress}
+          onSelect={selectPlaceSuggestion}
+        />
         <label>
           匹配半径
           <input type="number" value={newPlaceRadius} onChange={(event) => setNewPlaceRadius(Number(event.target.value))} />

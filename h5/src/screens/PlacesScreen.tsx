@@ -1,10 +1,12 @@
 import { useState } from 'react';
 import { api } from '../api/client';
-import type { LocationPoint, Place } from '../api/types';
+import type { AmapPoi, LocationPoint, Place } from '../api/types';
 import { mascots, uiAssets } from '../assets/visualAssets';
 import { BrandHeader } from '../components/BrandHeader';
+import { PlaceAddressPicker } from '../components/PlaceAddressPicker';
 import { Sheet } from '../components/Sheet';
 import type { LocationStatus } from '../types/location';
+import { applyPlaceSuggestionToDraft } from '../utils/placeSuggestionDraft';
 
 type PlacesScreenProps = {
   places: Place[];
@@ -112,6 +114,19 @@ export function PlacesScreen({ places, location, locationStatus, onChanged, onLo
     }
   }
 
+  function selectPlaceSuggestion(suggestion: AmapPoi) {
+    const next = applyPlaceSuggestionToDraft({
+      currentName: name,
+      defaultNames: ['公司', '新地点', '常用地点'],
+      suggestion
+    });
+    setName(next.name);
+    setAddress(next.address);
+    setDraftLocation(next.location);
+    setResolvedAddress(next.address);
+    setSheetMessage('已选择高德候选地点，会按这个位置保存。');
+  }
+
   function requestRemove(place: Place) {
     setDeleteTarget(place);
   }
@@ -194,10 +209,13 @@ export function PlacesScreen({ places, location, locationStatus, onChanged, onLo
           名称
           <input value={name} onChange={(event) => setName(event.target.value)} />
         </label>
-        <label>
-          地址
-          <input value={address} onChange={(event) => setAddress(event.target.value)} />
-        </label>
+        <PlaceAddressPicker
+          value={address}
+          searchLocation={draftLocation || location}
+          disabled={resolving}
+          onChange={setAddress}
+          onSelect={selectPlaceSuggestion}
+        />
         <label>
           匹配半径
           <input type="number" value={radiusMeters} onChange={(event) => setRadiusMeters(Number(event.target.value))} />

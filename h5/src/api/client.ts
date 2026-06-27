@@ -249,6 +249,15 @@ export const api = {
     });
     return requestJson<{ pois: AmapPoi[] }>(`/api/amap/search?${params.toString()}`);
   },
+  async searchPlaceSuggestions(input: { keyword: string; location: LocationPoint; radiusMeters?: number }) {
+    const params = new URLSearchParams({
+      keyword: input.keyword,
+      latitude: String(input.location.latitude),
+      longitude: String(input.location.longitude),
+      radiusMeters: String(input.radiusMeters || 5000)
+    });
+    return requestJson<{ pois: AmapPoi[] }>(`/api/amap/place-suggestions?${params.toString()}`);
+  },
   async reverseGeocode(location: LocationPoint) {
     const params = new URLSearchParams({
       latitude: String(location.latitude),
