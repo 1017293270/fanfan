@@ -1,4 +1,5 @@
 import type { ReactNode } from 'react';
+import { createPortal } from 'react-dom';
 import { X } from 'lucide-react';
 
 type SheetProps = {
@@ -10,7 +11,8 @@ type SheetProps = {
 
 export function Sheet({ title, open, children, onClose }: SheetProps) {
   if (!open) return null;
-  return (
+
+  const sheet = (
     <div className="sheet-layer" role="presentation">
       <button className="sheet-layer__backdrop" type="button" aria-label="关闭" onClick={onClose} />
       <section className="sheet" role="dialog" aria-modal="true" aria-label={title}>
@@ -24,4 +26,6 @@ export function Sheet({ title, open, children, onClose }: SheetProps) {
       </section>
     </div>
   );
+
+  return typeof document === 'undefined' ? sheet : createPortal(sheet, document.body);
 }
