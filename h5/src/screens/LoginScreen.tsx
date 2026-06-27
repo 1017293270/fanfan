@@ -3,6 +3,7 @@ import { api, setStoredToken } from '../api/client';
 import type { PublicUser } from '../api/types';
 import { mascots, uiAssets } from '../assets/visualAssets';
 import { BrandHeader } from '../components/BrandHeader';
+import { validateAuthForm } from '../utils/authValidation';
 
 type LoginScreenProps = {
   onAuth: (user: PublicUser, token: string) => void;
@@ -18,13 +19,27 @@ export function LoginScreen({ onAuth }: LoginScreenProps) {
   const [error, setError] = useState('');
 
   async function submit() {
-    setBusy(true);
     setError('');
+    const request = (() => {
+      if (mode === 'login') {
+        const validated = validateAuthForm({ mode, username, password });
+        if (typeof validated === 'string') return validated;
+        return api.login(validated);
+      }
+
+      const validated = validateAuthForm({ mode, inviteCode, username, displayName, password });
+      if (typeof validated === 'string') return validated;
+      return api.register(validated);
+    })();
+
+    if (typeof request === 'string') {
+      setError(request);
+      return;
+    }
+
+    setBusy(true);
     try {
-      const result =
-        mode === 'login'
-          ? await api.login({ username, password })
-          : await api.register({ inviteCode, username, displayName, password });
+      const result = await request;
       setStoredToken(result.token);
       onAuth(result.user, result.token);
     } catch (err) {
