@@ -2,11 +2,18 @@
   root * /srv
   encode zstd gzip
 
-  @api path /api/* /health
-  reverse_proxy @api api:8787
+  handle /api/* {
+    reverse_proxy api:8787
+  }
 
-  try_files {path} /index.html
-  file_server
+  handle /health {
+    reverse_proxy api:8787
+  }
+
+  handle {
+    try_files {path} /index.html
+    file_server
+  }
 
   header {
     X-Content-Type-Options nosniff
