@@ -1,8 +1,9 @@
-import { useEffect, useState } from 'react';
+import { useEffect, useRef, useState } from 'react';
 import { api } from '../api/client';
 import type { InviteCode, InviteCodeStatus, PublicUser } from '../api/types';
 import { mascots, uiAssets } from '../assets/visualAssets';
 import { BrandHeader } from '../components/BrandHeader';
+import { copyTextToClipboard } from '../utils/clipboard';
 
 type AdminScreenProps = {
   currentUser: PublicUser;
@@ -19,6 +20,8 @@ export function AdminScreen({ currentUser }: AdminScreenProps) {
   const [inviteCodes, setInviteCodes] = useState<InviteCode[]>([]);
   const [newCode, setNewCode] = useState('');
   const [message, setMessage] = useState('');
+  const [copiedCodeId, setCopiedCodeId] = useState('');
+  const copyTimer = useRef<ReturnType<typeof setTimeout> | null>(null);
 
   async function load() {
     const [userResult, inviteResult] = await Promise.all([api.listUsers(), api.listInviteCodes()]);
@@ -29,6 +32,12 @@ export function AdminScreen({ currentUser }: AdminScreenProps) {
   useEffect(() => {
     if (currentUser.role === 'super_admin') void load();
   }, [currentUser.role]);
+
+  useEffect(() => {
+    return () => {
+      if (copyTimer.current) clearTimeout(copyTimer.current);
+    };
+  }, []);
 
   async function createCode() {
     const result = await api.createInviteCode(newCode || undefined);
@@ -45,6 +54,18 @@ export function AdminScreen({ currentUser }: AdminScreenProps) {
   async function disableCode(code: InviteCode) {
     await api.updateInviteCodeStatus(code.id, 'disabled');
     await load();
+  }
+
+  async function copyInviteCode(code: InviteCode) {
+    try {
+      await copyTextToClipboard(code.code);
+      setCopiedCodeId(code.id);
+      setMessage(`已复制邀请码：${code.code}`);
+      if (copyTimer.current) clearTimeout(copyTimer.current);
+      copyTimer.current = setTimeout(() => setCopiedCodeId(''), 1500);
+    } catch {
+      setMessage('复制失败，可以长按邀请码手动复制。');
+    }
   }
 
   if (currentUser.role !== 'super_admin') {
@@ -89,13 +110,21 @@ export function AdminScreen({ currentUser }: AdminScreenProps) {
       <section className="list-card">
         <h2>邀请码</h2>
         {inviteCodes.map((code) => (
-          <button className="admin-row" type="button" key={code.id} onClick={() => disableCode(code)}>
+          <div className="admin-row admin-row--static" key={code.id}>
             <span>
               <strong>{code.code}</strong>
               <small>{code.usedByUserId ? `已使用：${code.usedByUserId}` : '未使用'}</small>
             </span>
-            <em>{inviteCodeStatusText[code.status]}</em>
-          </button>
+            <div className="admin-row__actions">
+              <em>{inviteCodeStatusText[code.status]}</em>
+              <button className="admin-row__button admin-row__button--copy" type="button" onClick={() => void copyInviteCode(code)}>
+                {copiedCodeId === code.id ? '已复制' : '复制'}
+              </button>
+              <button className="admin-row__button" type="button" disabled={code.status === 'disabled'} onClick={() => void disableCode(code)}>
+                停用
+              </button>
+            </div>
+          </div>
         ))}
       </section>
     </div>

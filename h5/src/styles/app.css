@@ -797,6 +797,14 @@ select {
   text-align: left;
 }
 
+.admin-row--static {
+  cursor: default;
+}
+
+.admin-row > span {
+  min-width: 0;
+}
+
 .restaurant-row strong,
 .admin-row strong {
   display: block;
@@ -824,6 +832,37 @@ select {
   font-style: normal;
   font-weight: 900;
   text-align: center;
+}
+
+.admin-row__actions {
+  flex: none;
+  display: flex;
+  align-items: center;
+  justify-content: flex-end;
+  flex-wrap: wrap;
+  gap: 6px;
+  max-width: 178px;
+}
+
+.admin-row__button {
+  min-height: 32px;
+  padding: 7px 11px;
+  border: 1px solid var(--kfl-line);
+  border-radius: 999px;
+  background: #fff;
+  color: #66544d;
+  font-size: 12px;
+  font-weight: 900;
+}
+
+.admin-row__button--copy {
+  border-color: rgba(242, 75, 58, 0.22);
+  background: var(--kfl-peach);
+  color: #a2382e;
+}
+
+.admin-row__button:disabled {
+  opacity: 0.54;
 }
 
 .action-grid {
