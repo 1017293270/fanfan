@@ -1,0 +1,14 @@
+.git
+.logs
+.tools
+node_modules
+h5/dist
+server/dist
+.data
+server/.data
+server/.env
+deploy/.env.production
+tmp-*.log
+tmp-*.pid
+tmp-preview*.*
+npm-debug.log*
