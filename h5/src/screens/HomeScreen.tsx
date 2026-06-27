@@ -1,12 +1,13 @@
 import { useState } from 'react';
 import { api } from '../api/client';
-import type { LocationPoint, Place, RecommendationResponse } from '../api/types';
+import type { LocationPoint, Place, RecommendationResponse, RestaurantCandidate } from '../api/types';
 import { mascots, uiAssets } from '../assets/visualAssets';
 import { BrandHeader } from '../components/BrandHeader';
 import { IconButton } from '../components/IconButton';
 import { PlacePill } from '../components/PlacePill';
 import { Sheet } from '../components/Sheet';
 import type { LocationStatus } from '../types/location';
+import { openAmapNavigation } from '../utils/maps';
 
 type HomeScreenProps = {
   places: Place[];
@@ -79,6 +80,7 @@ export function HomeScreen({ activePlace, locationStatus, unmatched, onChanged, 
   const [craving, setCraving] = useState('米饭');
   const [spicyPreference, setSpicyPreference] = useState<'none' | 'mild' | 'medium' | 'spicy'>('mild');
   const [result, setResult] = useState<RecommendationResponse | null>(null);
+  const [selectedCandidate, setSelectedCandidate] = useState<RestaurantCandidate | null>(null);
   const [busy, setBusy] = useState(false);
   const [message, setMessage] = useState('附近好吃的正在赶来');
   const [placeSheet, setPlaceSheet] = useState(false);
@@ -112,6 +114,7 @@ export function HomeScreen({ activePlace, locationStatus, unmatched, onChanged, 
         }
       });
       setResult(response);
+      setSelectedCandidate(response.primaryRecommendation);
       setMessage('饭饭狸拍板啦');
     } catch (err) {
       setMessage(err instanceof Error ? err.message : '推荐服务暂时不可用');
@@ -173,7 +176,10 @@ export function HomeScreen({ activePlace, locationStatus, unmatched, onChanged, 
     await onChanged();
   }
 
-  const primary = result?.primaryRecommendation;
+  const primary = selectedCandidate ?? result?.primaryRecommendation;
+  const alternativeCandidates = result
+    ? [result.primaryRecommendation, ...result.alternatives].filter((item) => item.poiId !== primary?.poiId)
+    : [];
   const stateMascot = busy ? mascots.loading : primary ? mascots.recommend : unmatched ? mascots.noIdea : mascots.recommend;
 
   return (
@@ -282,18 +288,18 @@ export function HomeScreen({ activePlace, locationStatus, unmatched, onChanged, 
             </div>
             <p className="reason">{primary.reason || '这家离你近，口味也合适。'}</p>
           </article>
-          {result?.alternatives.length ? (
+          {alternativeCandidates.length ? (
             <section className="list-card">
               <h2>备选也不错</h2>
-              {result.alternatives.map((item) => (
-                <button className="restaurant-row" key={item.poiId} type="button">
+              {alternativeCandidates.map((item) => (
+                <button className="restaurant-row" key={item.poiId} type="button" onClick={() => setSelectedCandidate(item)}>
                   <span>
                     <strong>{item.name}</strong>
                     <small>
                       {item.category} · {item.distanceMeters}m · {item.avgPrice ? `人均${item.avgPrice}元` : '价格待补'}
                     </small>
                   </span>
-                  <em>看看</em>
+                  <em>查看</em>
                 </button>
               ))}
             </section>
@@ -302,7 +308,7 @@ export function HomeScreen({ activePlace, locationStatus, unmatched, onChanged, 
             <IconButton iconSrc={uiAssets.actionRefresh} label="换一批" onClick={recommend} />
             <IconButton iconSrc={uiAssets.actionFavorite} label="收藏" />
             <IconButton iconSrc={uiAssets.actionDislike} label="不喜欢" />
-            <IconButton iconSrc={uiAssets.actionNavigate} label="带我去" variant="green" />
+            <IconButton iconSrc={uiAssets.actionNavigate} label="带我去" variant="green" onClick={() => openAmapNavigation(primary)} />
           </div>
         </>
       ) : null}
