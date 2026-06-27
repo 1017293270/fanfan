@@ -20,6 +20,7 @@ export default defineConfig({
   server: {
     host: devHost,
     port: devPort,
+    allowedHosts: ['.trycloudflare.com'],
     https: httpsConfig,
     proxy: {
       '/api': apiProxyTarget

@@ -18,3 +18,4 @@ tmp-h5-dev.pid
 server/.data/
 .logs/
 .certs/
+.tools/
