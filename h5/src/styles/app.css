@@ -361,6 +361,12 @@ select {
   color: #a2382e;
 }
 
+.chip--more {
+  border-color: rgba(74, 175, 91, 0.24);
+  background: var(--kfl-green-soft);
+  color: var(--kfl-bamboo);
+}
+
 .tag {
   min-height: 0;
   padding: 6px 9px;
@@ -662,6 +668,22 @@ select {
 
 .sheet-chip-row--compact button {
   padding: 7px 11px;
+}
+
+.preference-groups {
+  display: grid;
+  gap: 14px;
+}
+
+.preference-group h3 {
+  margin: 0 0 8px;
+  color: var(--kfl-ink);
+  font-size: 14px;
+  font-weight: 900;
+}
+
+.preference-group .sheet-chip-row {
+  margin-top: 0;
 }
 
 .state-card {

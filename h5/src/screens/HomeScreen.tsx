@@ -8,6 +8,7 @@ import { PlacePill } from '../components/PlacePill';
 import { Sheet } from '../components/Sheet';
 import type { LocationStatus } from '../types/location';
 import { openAmapNavigation } from '../utils/maps';
+import { buildPreferencePrompt } from '../utils/preferencePrompt';
 
 type HomeScreenProps = {
   places: Place[];
@@ -26,10 +27,19 @@ const distanceOptions = [
 ];
 
 const budgetOptions = [
-  { value: 30, icon: uiAssets.chipWallet },
-  { value: 50, icon: uiAssets.actionBudget },
-  { value: 100, icon: uiAssets.actionBudget }
+  { value: 30, label: '30 元内', promptLabel: '人均 30 元内', icon: uiAssets.chipWallet },
+  { value: 50, label: '50 元内', promptLabel: '人均 50 元内', icon: uiAssets.actionBudget },
+  { value: 100, label: '100 元内', promptLabel: '人均 100 元内', icon: uiAssets.actionBudget }
 ];
+
+const spicyOptions = [
+  { value: 'none', label: '不辣', icon: uiAssets.chipLeaf },
+  { value: 'mild', label: '少辣', icon: uiAssets.chipChili },
+  { value: 'medium', label: '中辣', icon: uiAssets.chipChili },
+  { value: 'spicy', label: '能吃辣', icon: uiAssets.chipChili }
+] as const;
+
+type SpicyPreference = (typeof spicyOptions)[number]['value'];
 
 const cravingOptions = [
   { value: '米饭', icon: uiAssets.chipRice },
@@ -40,6 +50,72 @@ const cravingOptions = [
   { value: '轻食', icon: uiAssets.chipSalad },
   { value: '烧烤', icon: uiAssets.chipSkewer },
   { value: '甜品', icon: uiAssets.chipDessert }
+];
+
+type MorePreferenceOption = {
+  label: string;
+  icon: string;
+  kind: 'craving' | 'extra';
+  value?: string;
+};
+
+const morePreferenceGroups: Array<{ title: string; options: MorePreferenceOption[] }> = [
+  {
+    title: '主食',
+    options: [
+      { label: '米饭', value: '米饭', kind: 'craving', icon: uiAssets.chipRice },
+      { label: '热汤面', value: '热汤面', kind: 'craving', icon: uiAssets.chipNoodle },
+      { label: '粉', value: '粉', kind: 'craving', icon: uiAssets.chipNoodle },
+      { label: '饺子', value: '饺子', kind: 'craving', icon: uiAssets.chipRice },
+      { label: '粥', value: '粥', kind: 'craving', icon: uiAssets.chipRice },
+      { label: '轻食', value: '轻食', kind: 'craving', icon: uiAssets.chipSalad }
+    ]
+  },
+  {
+    title: '菜系',
+    options: [
+      { label: '家常菜', kind: 'extra', icon: uiAssets.chipRice },
+      { label: '川湘菜', kind: 'extra', icon: uiAssets.chipChili },
+      { label: '粤菜', kind: 'extra', icon: uiAssets.chipLeaf },
+      { label: '日料', kind: 'extra', icon: uiAssets.chipRice },
+      { label: '韩餐', kind: 'extra', icon: uiAssets.chipHotpot },
+      { label: '西餐', kind: 'extra', icon: uiAssets.chipWallet },
+      { label: '火锅', kind: 'extra', icon: uiAssets.chipHotpot },
+      { label: '烧烤', kind: 'extra', icon: uiAssets.chipSkewer }
+    ]
+  },
+  {
+    title: '口味',
+    options: [
+      { label: '清淡', kind: 'extra', icon: uiAssets.chipLeaf },
+      { label: '热乎', kind: 'extra', icon: uiAssets.chipHotpot },
+      { label: '酸甜', kind: 'extra', icon: uiAssets.chipDessert },
+      { label: '麻辣', kind: 'extra', icon: uiAssets.chipChili },
+      { label: '不油腻', kind: 'extra', icon: uiAssets.chipLeaf },
+      { label: '不重口', kind: 'extra', icon: uiAssets.chipLeaf }
+    ]
+  },
+  {
+    title: '场景',
+    options: [
+      { label: '快一点', kind: 'extra', icon: uiAssets.chipTime },
+      { label: '一个人吃', kind: 'extra', icon: mascots.happy },
+      { label: '坐下吃', kind: 'extra', icon: mascots.riceBowl },
+      { label: '换个新鲜', kind: 'extra', icon: uiAssets.actionRefresh },
+      { label: '常吃优先', kind: 'extra', icon: uiAssets.actionFavorite },
+      { label: '高分优先', kind: 'extra', icon: uiAssets.badgeMatch }
+    ]
+  },
+  {
+    title: '排除',
+    options: [
+      { label: '不要咖啡奶茶', kind: 'extra', icon: uiAssets.actionDislike },
+      { label: '不要甜品', kind: 'extra', icon: uiAssets.actionDislike },
+      { label: '不要排队', kind: 'extra', icon: uiAssets.chipTime },
+      { label: '不要太贵', kind: 'extra', icon: uiAssets.chipWallet },
+      { label: '不要太远', kind: 'extra', icon: uiAssets.actionNearby }
+    ]
+  }
 ];
 
 const moodOptions = [
@@ -74,15 +150,29 @@ const moodOptions = [
 ];
 
 export function HomeScreen({ activePlace, locationStatus, unmatched, onChanged, onLocate, onResolveAddress }: HomeScreenProps) {
-  const [textPreference, setTextPreference] = useState('想吃热乎的，不太辣，别太远');
   const [distanceMeters, setDistanceMeters] = useState(1500);
   const [budgetPerPerson, setBudgetPerPerson] = useState(30);
   const [craving, setCraving] = useState('米饭');
-  const [spicyPreference, setSpicyPreference] = useState<'none' | 'mild' | 'medium' | 'spicy'>('mild');
+  const [spicyPreference, setSpicyPreference] = useState<SpicyPreference>('mild');
+  const [extraPreferences, setExtraPreferences] = useState<string[]>(['热乎']);
+  const [textPreference, setTextPreference] = useState(() =>
+    buildPreferencePrompt({
+      text: '想吃热乎的，不太辣，别太远',
+      selections: {
+        distanceLabel: distanceOptions[1].label,
+        budgetLabel: budgetOptions[0].promptLabel,
+        spicyLabel: spicyOptions[1].label,
+        cravingLabel: '米饭',
+        extraLabels: ['热乎'],
+        openNow: true
+      }
+    })
+  );
   const [result, setResult] = useState<RecommendationResponse | null>(null);
   const [selectedCandidate, setSelectedCandidate] = useState<RestaurantCandidate | null>(null);
   const [busy, setBusy] = useState(false);
   const [message, setMessage] = useState('附近好吃的正在赶来');
+  const [preferenceSheet, setPreferenceSheet] = useState(false);
   const [placeSheet, setPlaceSheet] = useState(false);
   const [newPlaceName, setNewPlaceName] = useState('新地点');
   const [newPlaceAddress, setNewPlaceAddress] = useState('当前位置');
@@ -91,6 +181,106 @@ export function HomeScreen({ activePlace, locationStatus, unmatched, onChanged, 
   const [resolvedAddress, setResolvedAddress] = useState('');
   const [resolvingPlace, setResolvingPlace] = useState(false);
   const [placeSheetMessage, setPlaceSheetMessage] = useState('');
+
+  function promptSelections(next: {
+    distanceMeters: number;
+    budgetPerPerson: number;
+    spicyPreference: SpicyPreference;
+    craving: string;
+    extraPreferences: string[];
+  }) {
+    return {
+      distanceLabel: distanceOptions.find((item) => item.value === next.distanceMeters)?.label,
+      budgetLabel: budgetOptions.find((item) => item.value === next.budgetPerPerson)?.promptLabel,
+      spicyLabel: spicyOptions.find((item) => item.value === next.spicyPreference)?.label,
+      cravingLabel: next.craving,
+      extraLabels: next.extraPreferences,
+      openNow: true
+    };
+  }
+
+  function syncPrompt(overrides: Partial<{
+    distanceMeters: number;
+    budgetPerPerson: number;
+    spicyPreference: SpicyPreference;
+    craving: string;
+    extraPreferences: string[];
+  }>) {
+    const next = {
+      distanceMeters,
+      budgetPerPerson,
+      spicyPreference,
+      craving,
+      extraPreferences,
+      ...overrides
+    };
+    setTextPreference((current) =>
+      buildPreferencePrompt({
+        text: current,
+        selections: promptSelections(next)
+      })
+    );
+  }
+
+  function chooseDistance(value: number) {
+    setDistanceMeters(value);
+    syncPrompt({ distanceMeters: value });
+  }
+
+  function chooseBudget(value: number) {
+    setBudgetPerPerson(value);
+    syncPrompt({ budgetPerPerson: value });
+  }
+
+  function chooseSpicy(value: SpicyPreference) {
+    setSpicyPreference(value);
+    syncPrompt({ spicyPreference: value });
+  }
+
+  function chooseCraving(value: string) {
+    setCraving(value);
+    syncPrompt({ craving: value });
+  }
+
+  function toggleExtraPreference(label: string) {
+    const next = extraPreferences.includes(label) ? extraPreferences.filter((item) => item !== label) : extraPreferences.concat(label);
+    setExtraPreferences(next);
+    syncPrompt({ extraPreferences: next });
+  }
+
+  function selectMorePreference(option: MorePreferenceOption) {
+    if (option.kind === 'craving') {
+      chooseCraving(option.value || option.label);
+      return;
+    }
+    toggleExtraPreference(option.label);
+  }
+
+  function resetPromptPreferences() {
+    const nextExtra: string[] = [];
+    setDistanceMeters(1500);
+    setBudgetPerPerson(30);
+    setSpicyPreference('mild');
+    setCraving('米饭');
+    setExtraPreferences(nextExtra);
+    setTextPreference((current) =>
+      buildPreferencePrompt({
+        text: current,
+        selections: promptSelections({
+          distanceMeters: 1500,
+          budgetPerPerson: 30,
+          spicyPreference: 'mild',
+          craving: '米饭',
+          extraPreferences: nextExtra
+        })
+      })
+    );
+  }
+
+  function isMorePreferenceOn(option: MorePreferenceOption) {
+    if (option.kind === 'craving') return craving === (option.value || option.label);
+    return extraPreferences.includes(option.label);
+  }
 
   async function recommend() {
     setBusy(true);
@@ -203,7 +393,18 @@ export function HomeScreen({ activePlace, locationStatus, unmatched, onChanged, 
             type="button"
             key={option.label}
             onClick={() => {
-              setTextPreference(option.preference);
+              setTextPreference(
+                buildPreferencePrompt({
+                  text: option.preference,
+                  selections: promptSelections({
+                    distanceMeters,
+                    budgetPerPerson,
+                    spicyPreference: option.spicy,
+                    craving: option.craving,
+                    extraPreferences
+                  })
+                })
+              );
               setCraving(option.craving);
               setSpicyPreference(option.spicy);
             }}
@@ -225,31 +426,33 @@ export function HomeScreen({ activePlace, locationStatus, unmatched, onChanged, 
       <textarea className="preference-input" value={textPreference} onChange={(event) => setTextPreference(event.target.value)} />
       <div className="chips">
         {distanceOptions.map((item) => (
-          <button className={`chip ${distanceMeters === item.value ? 'is-on' : ''}`} type="button" key={item.value} onClick={() => setDistanceMeters(item.value)}>
+          <button className={`chip ${distanceMeters === item.value ? 'is-on' : ''}`} type="button" key={item.value} onClick={() => chooseDistance(item.value)}>
             <img src={item.icon} alt="" />
             {item.label}
           </button>
         ))}
         {budgetOptions.map((item) => (
-          <button className={`chip ${budgetPerPerson === item.value ? 'is-on' : ''}`} type="button" key={item.value} onClick={() => setBudgetPerPerson(item.value)}>
+          <button className={`chip ${budgetPerPerson === item.value ? 'is-on' : ''}`} type="button" key={item.value} onClick={() => chooseBudget(item.value)}>
             <img src={item.icon} alt="" />
-            人均 {item.value}
+            {item.label}
           </button>
         ))}
-        <button className={`chip ${spicyPreference === 'mild' ? 'is-on' : ''}`} type="button" onClick={() => setSpicyPreference('mild')}>
-          <img src={uiAssets.chipChili} alt="" />
-          少辣
-        </button>
-        <button className={`chip ${spicyPreference === 'none' ? 'is-on' : ''}`} type="button" onClick={() => setSpicyPreference('none')}>
-          <img src={uiAssets.chipLeaf} alt="" />
-          不辣
-        </button>
+        {spicyOptions.map((item) => (
+          <button className={`chip ${spicyPreference === item.value ? 'is-on' : ''}`} type="button" key={item.value} onClick={() => chooseSpicy(item.value)}>
+            <img src={item.icon} alt="" />
+            {item.label}
+          </button>
+        ))}
         {cravingOptions.map((item) => (
-          <button className={`chip ${craving === item.value ? 'is-on' : ''}`} type="button" key={item.value} onClick={() => setCraving(item.value)}>
+          <button className={`chip ${craving === item.value ? 'is-on' : ''}`} type="button" key={item.value} onClick={() => chooseCraving(item.value)}>
             <img src={item.icon} alt="" />
             {item.value}
           </button>
         ))}
+        <button className="chip chip--more" type="button" onClick={() => setPreferenceSheet(true)}>
+          <img src={mascots.peek} alt="" />
+          更多偏好
+        </button>
       </div>
       <button className="primary-button" type="button" disabled={busy} onClick={recommend}>
         {busy ? '饭饭狸在看' : '让饭饭狸拍板'}
@@ -308,6 +511,31 @@ export function HomeScreen({ activePlace, locationStatus, unmatched, onChanged, 
           </div>
         </>
       ) : null}
+      <Sheet title="更多偏好" open={preferenceSheet} onClose={() => setPreferenceSheet(false)}>
+        <div className="preference-groups">
+          {morePreferenceGroups.map((group) => (
+            <section className="preference-group" key={group.title}>
+              <h3>{group.title}</h3>
+              <div className="sheet-chip-row sheet-chip-row--compact">
+                {group.options.map((option) => (
+                  <button className={isMorePreferenceOn(option) ? 'is-on' : ''} type="button" key={`${group.title}-${option.label}`} onClick={() => selectMorePreference(option)}>
+                    <img src={option.icon} alt="" />
+                    {option.label}
+                  </button>
+                ))}
+              </div>
+            </section>
+          ))}
+        </div>
+        <div className="sheet-actions">
+          <button className="secondary-button" type="button" onClick={resetPromptPreferences}>
+            重置
+          </button>
+          <button className="primary-button" type="button" onClick={() => setPreferenceSheet(false)}>
+            完成
+          </button>
+        </div>
+      </Sheet>
       <Sheet title="添加常用地点" open={placeSheet} onClose={() => setPlaceSheet(false)}>
         <section className={`location-preview location-preview--${locationStatus.source}`}>
           <img src={locationStatus.source === 'browser' ? uiAssets.actionNearby : mascots.location} alt="" />
