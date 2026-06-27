@@ -1,4 +1,4 @@
-import { useState } from 'react';
+import { useEffect, useState } from 'react';
 import { api } from '../api/client';
 import type { AmapPoi, LocationPoint, Place, RecommendationResponse, RestaurantCandidate } from '../api/types';
 import { mascots, uiAssets } from '../assets/visualAssets';
@@ -11,6 +11,7 @@ import type { LocationStatus } from '../types/location';
 import { openAmapNavigation } from '../utils/maps';
 import { applyPlaceSuggestionToDraft } from '../utils/placeSuggestionDraft';
 import { buildPreferencePrompt } from '../utils/preferencePrompt';
+import { feedbackForAction, recommendationLoadingMessage, type RecommendationFeedback } from '../utils/recommendationFeedback';
 
 type HomeScreenProps = {
   places: Place[];
@@ -174,6 +175,7 @@ export function HomeScreen({ activePlace, locationStatus, unmatched, onChanged, 
   const [selectedCandidate, setSelectedCandidate] = useState<RestaurantCandidate | null>(null);
   const [busy, setBusy] = useState(false);
   const [message, setMessage] = useState('附近好吃的正在赶来');
+  const [feedback, setFeedback] = useState<RecommendationFeedback | null>(null);
   const [preferenceSheet, setPreferenceSheet] = useState(false);
   const [placeSheet, setPlaceSheet] = useState(false);
   const [newPlaceName, setNewPlaceName] = useState('新地点');
@@ -284,9 +286,30 @@ export function HomeScreen({ activePlace, locationStatus, unmatched, onChanged, 
     return extraPreferences.includes(option.label);
   }
 
+  useEffect(() => {
+    if (!busy) return undefined;
+    let step = 0;
+    setMessage(recommendationLoadingMessage(step));
+    const timer = window.setInterval(() => {
+      step += 1;
+      setMessage(recommendationLoadingMessage(step));
+    }, 850);
+    return () => window.clearInterval(timer);
+  }, [busy]);
+
+  useEffect(() => {
+    if (!feedback) return undefined;
+    const timer = window.setTimeout(() => setFeedback(null), 1800);
+    return () => window.clearTimeout(timer);
+  }, [feedback]);
+
+  function showFeedback(action: Parameters<typeof feedbackForAction>[0]) {
+    setFeedback(feedbackForAction(action));
+  }
+
   async function recommend() {
     setBusy(true);
-    setMessage('饭饭狸先看看距离、口味和预算。');
+    setFeedback(null);
     try {
       const nextLocation = await onLocate();
       const response = await api.recommend({
@@ -472,7 +495,7 @@ export function HomeScreen({ activePlace, locationStatus, unmatched, onChanged, 
       <button className="primary-button" type="button" disabled={busy} onClick={recommend}>
         {busy ? '饭饭狸在看' : '让饭饭狸拍板'}
       </button>
-      <section className="state-card state-card--illustrated">
+      <section className={`state-card state-card--illustrated ${busy ? 'state-card--busy' : ''}`}>
         <img src={stateMascot} alt="" />
         <div>
           <strong>{message}</strong>
@@ -520,12 +543,21 @@ export function HomeScreen({ activePlace, locationStatus, unmatched, onChanged, 
           ) : null}
           <div className="action-grid">
             <IconButton iconSrc={uiAssets.actionRefresh} label="换一批" onClick={recommend} />
-            <IconButton iconSrc={uiAssets.actionFavorite} label="收藏" />
-            <IconButton iconSrc={uiAssets.actionDislike} label="不喜欢" />
-            <IconButton iconSrc={uiAssets.actionNavigate} label="带我去" variant="green" onClick={() => openAmapNavigation(primary)} />
+            <IconButton iconSrc={uiAssets.actionFavorite} label="收藏" onClick={() => showFeedback('favorite')} />
+            <IconButton iconSrc={uiAssets.actionDislike} label="不喜欢" onClick={() => showFeedback('dislike')} />
+            <IconButton
+              iconSrc={uiAssets.actionNavigate}
+              label="带我去"
+              variant="green"
+              onClick={() => {
+                showFeedback('navigate');
+                openAmapNavigation(primary);
+              }}
+            />
           </div>
         </>
       ) : null}
+      {feedback ? <div className={`feedback-toast feedback-toast--${feedback.tone}`}>{feedback.message}</div> : null}
       <Sheet title="更多偏好" open={preferenceSheet} onClose={() => setPreferenceSheet(false)}>
         <div className="preference-groups">
           {morePreferenceGroups.map((group) => (
