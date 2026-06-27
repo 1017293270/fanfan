@@ -3,7 +3,7 @@ import { api, setStoredToken } from '../api/client';
 import type { PublicUser } from '../api/types';
 import { mascots, uiAssets } from '../assets/visualAssets';
 import { BrandHeader } from '../components/BrandHeader';
-import { validateAuthForm } from '../utils/authValidation';
+import { defaultPasswordForMode, validateAuthForm, type AuthMode } from '../utils/authValidation';
 
 type LoginScreenProps = {
   onAuth: (user: PublicUser, token: string) => void;
@@ -14,9 +14,15 @@ export function LoginScreen({ onAuth }: LoginScreenProps) {
   const [username, setUsername] = useState('admin');
   const [displayName, setDisplayName] = useState('饭饭狸管理员');
   const [inviteCode, setInviteCode] = useState('FANFAN-START');
-  const [password, setPassword] = useState('change-me-local-admin');
+  const [password, setPassword] = useState(defaultPasswordForMode('login'));
   const [busy, setBusy] = useState(false);
   const [error, setError] = useState('');
+
+  function switchMode(nextMode: AuthMode) {
+    setMode(nextMode);
+    setPassword(defaultPasswordForMode(nextMode));
+    setError('');
+  }
 
   async function submit() {
     setError('');
@@ -59,10 +65,10 @@ export function LoginScreen({ onAuth }: LoginScreenProps) {
       </div>
       <section className="auth-card">
         <div className="segmented">
-          <button className={mode === 'login' ? 'is-active' : ''} type="button" onClick={() => setMode('login')}>
+          <button className={mode === 'login' ? 'is-active' : ''} type="button" onClick={() => switchMode('login')}>
             登录
           </button>
-          <button className={mode === 'register' ? 'is-active' : ''} type="button" onClick={() => setMode('register')}>
+          <button className={mode === 'register' ? 'is-active' : ''} type="button" onClick={() => switchMode('register')}>
             邀请注册
           </button>
         </div>

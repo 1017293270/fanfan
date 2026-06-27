@@ -1,7 +1,12 @@
 import { describe, expect, it } from 'vitest';
-import { validateAuthForm } from '../src/utils/authValidation';
+import { DEFAULT_LOGIN_PASSWORD, defaultPasswordForMode, validateAuthForm } from '../src/utils/authValidation';
 
 describe('validateAuthForm', () => {
+  it('does not reuse the default admin password for invite registration', () => {
+    expect(defaultPasswordForMode('login')).toBe(DEFAULT_LOGIN_PASSWORD);
+    expect(defaultPasswordForMode('register')).toBe('');
+  });
+
   it('explains short register passwords before sending the request', () => {
     expect(
       validateAuthForm({

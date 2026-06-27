@@ -1,11 +1,19 @@
+export type AuthMode = 'login' | 'register';
+
+export const DEFAULT_LOGIN_PASSWORD = 'change-me-local-admin';
+
+export function defaultPasswordForMode(mode: AuthMode) {
+  return mode === 'login' ? DEFAULT_LOGIN_PASSWORD : '';
+}
+
 type LoginInput = {
-  mode: 'login';
+  mode: Extract<AuthMode, 'login'>;
   username: string;
   password: string;
 };
 
 type RegisterInput = {
-  mode: 'register';
+  mode: Extract<AuthMode, 'register'>;
   inviteCode: string;
   username: string;
   displayName: string;
