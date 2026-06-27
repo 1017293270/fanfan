@@ -10,6 +10,7 @@ import { StoresScreen } from './screens/StoresScreen';
 import { AmapImportScreen } from './screens/AmapImportScreen';
 import { AdminScreen } from './screens/AdminScreen';
 import type { LocationStatus } from './types/location';
+import { fallbackPlaceName, formatReadableLocationName } from './utils/locationDisplay';
 
 const fallbackLocation: LocationPoint = {
   latitude: 31.2304,
@@ -21,10 +22,6 @@ const fallbackLocationStatus: LocationStatus = {
   title: '当前使用兜底定位',
   detail: '还没读到浏览器定位，先按上海市中心附近处理。'
 };
-
-function formatLocationDetail(location: LocationPoint) {
-  return `经纬度 ${location.latitude.toFixed(5)}, ${location.longitude.toFixed(5)}`;
-}
 
 function formatLocationTime() {
   return new Date().toLocaleTimeString('zh-CN', {
@@ -79,8 +76,8 @@ export default function App() {
         source: 'fallback',
         title: '手机预览需要 HTTPS 定位',
         detail: activePlace
-          ? `当前是 HTTP 局域网预览，手机浏览器会拦截定位；先按「${activePlace.name}」坐标处理。`
-          : `${formatLocationDetail(next)} · 当前是 HTTP 局域网预览，手机浏览器会拦截定位。`,
+          ? `当前是 HTTP 局域网预览，手机浏览器会拦截定位；先按${fallbackPlaceName(activePlace)}处理。`
+          : `当前是 HTTP 局域网预览，手机浏览器会拦截定位；先按${fallbackPlaceName(null)}处理。`,
         updatedAt: formatLocationTime()
       });
       return next;
@@ -96,23 +93,29 @@ export default function App() {
       setLocationStatus({
         source: 'fallback',
         title: '浏览器不支持定位',
-        detail: activePlace ? `先按「${activePlace.name}」坐标处理。` : `${formatLocationDetail(next)} · 使用兜底位置`,
+        detail: `先按${fallbackPlaceName(activePlace)}处理。`,
         updatedAt: formatLocationTime()
       });
       return next;
     }
     return new Promise((resolve) => {
       navigator.geolocation.getCurrentPosition(
-        (position) => {
+        async (position) => {
           const next = {
             latitude: position.coords.latitude,
             longitude: position.coords.longitude
           };
           setLocation(next);
           setLocationStatus({
+            source: 'locating',
+            title: '正在解析当前位置',
+            detail: '定位成功，饭饭狸正在换成地名。'
+          });
+          const address = await resolveAddress(next);
+          setLocationStatus({
             source: 'browser',
             title: '已读取当前位置',
-            detail: `${formatLocationDetail(next)} · 精度约 ${Math.round(position.coords.accuracy)}m`,
+            detail: `${formatReadableLocationName(address)} · 精度约 ${Math.round(position.coords.accuracy)}m`,
             updatedAt: formatLocationTime()
           });
           resolve(next);
@@ -130,8 +133,8 @@ export default function App() {
             source: 'fallback',
             title: '定位失败，使用兜底位置',
             detail: activePlace
-              ? `${reason}；先按「${activePlace.name}」坐标处理。`
-              : `${formatLocationDetail(next)} · ${reason}，请检查浏览器定位权限。`,
+              ? `${reason}；先按${fallbackPlaceName(activePlace)}处理。`
+              : `${reason}；先按${fallbackPlaceName(null)}处理，请检查浏览器定位权限。`,
             updatedAt: formatLocationTime()
           });
           resolve(next);
@@ -144,7 +147,7 @@ export default function App() {
   async function resolveAddress(point: LocationPoint): Promise<string> {
     try {
       const result = await api.reverseGeocode(point);
-      return result.formattedAddress || '当前位置附近';
+      return formatReadableLocationName(result.formattedAddress);
     } catch {
       return '当前位置附近';
     }

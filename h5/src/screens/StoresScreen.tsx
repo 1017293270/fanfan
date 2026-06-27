@@ -181,7 +181,7 @@ export function StoresScreen({ places, stores, activePlace, onChanged }: StoresS
               <strong>{selectedPlace ? `先记到「${selectedPlace.name}」` : '先添加常用地点'}</strong>
               <span>
                 {selectedPlace
-                  ? `${selectedPlace.address} · 手动店铺会先使用该地点坐标，精确店铺地址可之后从高德导入。`
+                  ? `${selectedPlace.address} · 手动店铺会先使用该地点位置，精确店铺地址可之后从高德导入。`
                   : '没有常用地点时，暂时不能创建手动店铺。'}
               </span>
             </div>

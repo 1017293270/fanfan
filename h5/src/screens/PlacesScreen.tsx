@@ -29,10 +29,6 @@ export function PlacesScreen({ places, location, locationStatus, onChanged, onLo
   const [deleteTarget, setDeleteTarget] = useState<Place | null>(null);
   const [deleting, setDeleting] = useState(false);
 
-  function coordinateText(point: LocationPoint) {
-    return `${point.latitude.toFixed(5)}, ${point.longitude.toFixed(5)}`;
-  }
-
   async function refreshLocationPreview(forceReplaceAddress = false) {
     setResolving(true);
     setSheetMessage('饭饭狸正在确认当前位置...');
@@ -53,7 +49,7 @@ export function PlacesScreen({ places, location, locationStatus, onChanged, onLo
     } catch {
       setDraftLocation(location);
       setResolvedAddress('');
-      setSheetMessage('定位或地址解析暂时失败，会先按当前坐标保存。');
+      setSheetMessage('定位或地址解析暂时失败，会先按当前位置附近保存。');
     } finally {
       setResolving(false);
     }
@@ -142,7 +138,7 @@ export function PlacesScreen({ places, location, locationStatus, onChanged, onLo
           <span>
             {locationStatus.source === 'browser'
               ? '已读取当前位置，添加地点时会自动反查附近地址。'
-              : '还没读到真实定位，添加地点会先使用兜底坐标。'}
+              : '还没读到真实定位，添加地点会先使用兜底位置。'}
           </span>
         </div>
       </section>
@@ -184,9 +180,9 @@ export function PlacesScreen({ places, location, locationStatus, onChanged, onLo
         <section className={`location-preview location-preview--${locationStatus.source}`}>
           <img src={locationStatus.source === 'browser' ? uiAssets.actionNearby : mascots.location} alt="" />
           <div>
-            <strong>{resolving ? '正在确认地点' : editing ? '地点坐标' : '将保存为常用地点'}</strong>
+            <strong>{resolving ? '正在确认地点' : editing ? '地点位置' : '将保存为常用地点'}</strong>
             <span>
-              {draftLocation ? `${address || resolvedAddress || '当前位置附近'} · ${coordinateText(draftLocation)}` : locationStatus.detail}
+              {draftLocation ? address || resolvedAddress || '当前位置附近' : locationStatus.detail}
             </span>
           </div>
           <button type="button" disabled={resolving} onClick={() => void refreshLocationPreview(true)}>

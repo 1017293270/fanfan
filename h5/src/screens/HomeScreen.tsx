@@ -92,10 +92,6 @@ export function HomeScreen({ activePlace, locationStatus, unmatched, onChanged, 
   const [resolvingPlace, setResolvingPlace] = useState(false);
   const [placeSheetMessage, setPlaceSheetMessage] = useState('');
 
-  function coordinateText(point: LocationPoint) {
-    return `${point.latitude.toFixed(5)}, ${point.longitude.toFixed(5)}`;
-  }
-
   async function recommend() {
     setBusy(true);
     setMessage('饭饭狸先看看距离、口味和预算。');
@@ -318,7 +314,7 @@ export function HomeScreen({ activePlace, locationStatus, unmatched, onChanged, 
           <div>
             <strong>{resolvingPlace ? '正在确认地点' : '将保存为常用地点'}</strong>
             <span>
-              {draftLocation ? `${newPlaceAddress || resolvedAddress || '当前位置附近'} · ${coordinateText(draftLocation)}` : locationStatus.detail}
+              {draftLocation ? newPlaceAddress || resolvedAddress || '当前位置附近' : locationStatus.detail}
             </span>
           </div>
           <button type="button" disabled={resolvingPlace} onClick={() => void refreshPlacePreview(true)}>
