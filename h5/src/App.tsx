@@ -250,6 +250,7 @@ export default function App() {
         <HomeScreen
           places={places}
           activePlace={activePlace}
+          stores={stores}
           locationStatus={locationStatus}
           unmatched={unmatched}
           onChanged={handleChanged}

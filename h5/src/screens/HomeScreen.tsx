@@ -1,6 +1,6 @@
 import { useEffect, useState } from 'react';
 import { api } from '../api/client';
-import type { AmapPoi, LocationPoint, Place, RecommendationResponse, RestaurantCandidate } from '../api/types';
+import type { AmapPoi, LocationPoint, Place, RecommendationResponse, RestaurantCandidate, Store } from '../api/types';
 import { mascots, uiAssets } from '../assets/visualAssets';
 import { BrandHeader } from '../components/BrandHeader';
 import { IconButton } from '../components/IconButton';
@@ -11,11 +11,18 @@ import type { LocationStatus } from '../types/location';
 import { openAmapNavigation } from '../utils/maps';
 import { applyPlaceSuggestionToDraft } from '../utils/placeSuggestionDraft';
 import { buildPreferencePrompt } from '../utils/preferencePrompt';
-import { feedbackForAction, recommendationLoadingMessage, type RecommendationFeedback } from '../utils/recommendationFeedback';
+import {
+  feedbackForAction,
+  feedbackForLibraryAction,
+  findStoreLinkForCandidate,
+  recommendationLoadingMessage,
+  type RecommendationFeedback
+} from '../utils/recommendationFeedback';
 
 type HomeScreenProps = {
   places: Place[];
   activePlace: Place | null;
+  stores: Store[];
   locationStatus: LocationStatus;
   unmatched: boolean;
   onChanged: () => Promise<void>;
@@ -43,6 +50,7 @@ const spicyOptions = [
 ] as const;
 
 type SpicyPreference = (typeof spicyOptions)[number]['value'];
+type LibraryFeedbackStatus = 'favorite' | 'blocked';
 
 const cravingOptions = [
   { value: '米饭', icon: uiAssets.chipRice },
@@ -152,7 +160,7 @@ const moodOptions = [
   }
 ];
 
-export function HomeScreen({ activePlace, locationStatus, unmatched, onChanged, onLocate, onResolveAddress }: HomeScreenProps) {
+export function HomeScreen({ activePlace, stores, locationStatus, unmatched, onChanged, onLocate, onResolveAddress }: HomeScreenProps) {
   const [distanceMeters, setDistanceMeters] = useState(1500);
   const [budgetPerPerson, setBudgetPerPerson] = useState(30);
   const [craving, setCraving] = useState('米饭');
@@ -174,6 +182,7 @@ export function HomeScreen({ activePlace, locationStatus, unmatched, onChanged, 
   const [result, setResult] = useState<RecommendationResponse | null>(null);
   const [selectedCandidate, setSelectedCandidate] = useState<RestaurantCandidate | null>(null);
   const [busy, setBusy] = useState(false);
+  const [feedbackBusy, setFeedbackBusy] = useState(false);
   const [message, setMessage] = useState('附近好吃的正在赶来');
   const [feedback, setFeedback] = useState<RecommendationFeedback | null>(null);
   const [preferenceSheet, setPreferenceSheet] = useState(false);
@@ -305,6 +314,35 @@ export function HomeScreen({ activePlace, locationStatus, unmatched, onChanged, 
 
   function showFeedback(action: Parameters<typeof feedbackForAction>[0]) {
     setFeedback(feedbackForAction(action));
+  }
+
+  async function rememberRecommendation(nextStatus: LibraryFeedbackStatus) {
+    if (!primary || feedbackBusy) return;
+    const action = nextStatus === 'favorite' ? 'favorite' : 'dislike';
+    const match = findStoreLinkForCandidate({
+      candidate: primary,
+      stores,
+      activePlaceId: activePlace?.id
+    });
+
+    if (!match) {
+      setFeedback(feedbackForLibraryAction(action, false));
+      return;
+    }
+
+    setFeedbackBusy(true);
+    try {
+      await api.updateLink(match.link.id, { status: nextStatus });
+      setFeedback(feedbackForLibraryAction(action, true));
+      await onChanged();
+    } catch (err) {
+      setFeedback({
+        tone: 'warm',
+        message: err instanceof Error ? err.message : '暂时没记上，稍后再试。'
+      });
+    } finally {
+      setFeedbackBusy(false);
+    }
   }
 
   async function recommend() {
@@ -543,8 +581,18 @@ export function HomeScreen({ activePlace, locationStatus, unmatched, onChanged, 
           ) : null}
           <div className="action-grid">
             <IconButton iconSrc={uiAssets.actionRefresh} label="换一批" onClick={recommend} />
-            <IconButton iconSrc={uiAssets.actionFavorite} label="收藏" onClick={() => showFeedback('favorite')} />
-            <IconButton iconSrc={uiAssets.actionDislike} label="不喜欢" onClick={() => showFeedback('dislike')} />
+            <IconButton
+              iconSrc={uiAssets.actionFavorite}
+              label="收藏"
+              disabled={feedbackBusy}
+              onClick={() => void rememberRecommendation('favorite')}
+            />
+            <IconButton
+              iconSrc={uiAssets.actionDislike}
+              label="不喜欢"
+              disabled={feedbackBusy}
+              onClick={() => void rememberRecommendation('blocked')}
+            />
             <IconButton
               iconSrc={uiAssets.actionNavigate}
               label="带我去"
